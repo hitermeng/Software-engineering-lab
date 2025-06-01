@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文章管理系统 | 哈尔滨工业大学</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #3498db;
+      --secondary-color: #2c3e50;
+      --accent-color: #e74c3c;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+    }
+
+    .hero-section {
+      background: url('https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80') no-repeat center center;
+      background-size: cover;
+      height: 60vh;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      text-align: center;
+    }
+
+    .hero-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 800px;
+      padding: 2rem;
+    }
+
+    .logo {
+      width: 120px;
+      margin-bottom: 1.5rem;
+    }
+
+    .btn-primary-custom {
+      background-color: var(--primary-color);
+      border: none;
+      padding: 0.8rem 2rem;
+      font-size: 1.1rem;
+      border-radius: 50px;
+      margin: 0.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary-custom:hover {
+      background-color: #2980b9;
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .feature-card {
+      background: white;
+      border-radius: 10px;
+      padding: 2rem;
+      margin: 1rem;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+      height: 100%;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-10px);
+    }
+
+    .feature-icon {
+      font-size: 2.5rem;
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+    }
+
+    footer {
+      background-color: var(--secondary-color);
+      color: white;
+      padding: 2rem 0;
+      text-align: center;
+    }
+
+    .social-icon {
+      color: white;
+      font-size: 1.5rem;
+      margin: 0 0.5rem;
+      transition: color 0.3s ease;
+    }
+
+    .social-icon:hover {
+      color: var(--primary-color);
+    }
+
+    @media (max-width: 768px) {
+      .hero-section {
+        height: 50vh;
+      }
+
+      .hero-content h1 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<!-- 导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" href="#">
+      <i class="fas fa-book-open me-2"></i>文章管理系统
+    </a>
+    <div class="d-flex">
+      <a href="/login" class="btn btn-outline-light me-2">登录</a>
+      <a href="/register" class="btn btn-primary">注册</a>
+    </div>
+  </div>
+</nav>
+
+<!-- 英雄区域 -->
+<section class="hero-section">
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <h1 class="display-4 fw-bold mb-4">哈尔滨工业大学文章管理系统</h1>
+    <p class="lead mb-5">高效管理您的学术文章、研究笔记和知识库</p>
+    <div>
+      <a href="/login" class="btn btn-primary-custom btn-lg">
+        <i class="fas fa-sign-in-alt me-2"></i>立即开始
+      </a>
+      <a href="#features" class="btn btn-outline-light btn-lg">
+        <i class="fas fa-info-circle me-2"></i>了解更多
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- 特性介绍 -->
+<section class="py-5" id="features">
+  <div class="container">
+    <h2 class="text-center mb-5">为什么选择我们的系统？</h2>
+    <div class="row">
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-edit"></i>
+          </div>
+          <h3>强大的编辑器</h3>
+          <p>集成富文本编辑器，支持Markdown语法，让您的写作体验更加流畅。</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-layer-group"></i>
+          </div>
+          <h3>智能分类</h3>
+          <p>多层级分类管理，帮助您高效组织和管理大量文章和文档。</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <h3>安全可靠</h3>
+          <p>采用JWT认证和RBAC权限控制，保障您的数据安全。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 页脚 -->
+<footer>
+  <div class="container">
+    <div class="mb-4">
+      <a href="#" class="social-icon"><i class="fab fa-weixin"></i></a>
+      <a href="#" class="social-icon"><i class="fab fa-weibo"></i></a>
+      <a href="#" class="social-icon"><i class="fab fa-github"></i></a>
+      <a href="#" class="social-icon"><i class="fas fa-envelope"></i></a>
+    </div>
+    <p class="mb-2">© 2025 哈尔滨工业大学计算学部</p>
+    <p class="small text-muted">地址：黑龙江省哈尔滨市南岗区西大直街92号</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
