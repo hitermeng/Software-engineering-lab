@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hit.articlemgr.mapper.ArticleMapper">
+
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.hit.articlemgr.dto.ArticleVO">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="username" property="username"/>
+        <result column="user_nickname" property="userNickname"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="category_name" property="categoryName"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="summary" property="summary"/>
+        <result column="tags" property="tags"/>
+        <result column="is_shared" property="isShared"/>
+        <result column="view_count" property="viewCount"/>
+        <result column="like_count" property="likeCount"/>
+        <result column="comment_count" property="commentCount"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 基础查询字段 -->
+    <sql id="Base_Column_List">
+        a.id, a.user_id, a.category_id, a.title, a.content, a.summary, a.tags,
+        a.is_shared, a.view_count, a.like_count, a.comment_count, a.status,
+        a.create_time, a.update_time,
+        u.username, u.nickname as user_nickname,
+        c.name as category_name
+    </sql>
+
+    <!-- 基础查询条件 -->
+    <sql id="Base_Where">
+        FROM article a
+        LEFT JOIN user u ON a.user_id = u.id
+        LEFT JOIN category c ON a.category_id = c.id
+        WHERE a.deleted = 0
+    </sql>
+
+    <!-- 分页查询文章列表 -->
+    <select id="findArticleList" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        <include refid="Base_Where"/>
+        <if test="filter.onlyMine != null and filter.onlyMine">
+            AND a.user_id = #{userId}
+        </if>
+        <if test="filter.onlyMine == null or !filter.onlyMine">
+            AND (a.is_shared = 1 OR a.user_id = #{userId})
+        </if>
+        <if test="filter.keyword != null and filter.keyword != ''">
+            AND (a.title LIKE CONCAT('%', #{filter.keyword}, '%')
+            OR a.content LIKE CONCAT('%', #{filter.keyword}, '%')
+            OR a.summary LIKE CONCAT('%', #{filter.keyword}, '%'))
+        </if>
+        <if test="filter.categoryId != null">
+            AND a.category_id = #{filter.categoryId}
+        </if>
+        <if test="filter.tag != null and filter.tag != ''">
+            AND a.tags LIKE CONCAT('%', #{filter.tag}, '%')
+        </if>
+        <if test="filter.isShared != null">
+            AND a.is_shared = #{filter.isShared}
+        </if>
+        <if test="filter.status != null">
+            AND a.status = #{filter.status}
+        </if>
+        <if test="filter.startTime != null">
+            AND a.create_time >= #{filter.startTime}
+        </if>
+        <if test="filter.endTime != null">
+            AND a.create_time &lt;= #{filter.endTime}
+        </if>
+        ORDER BY
+        <choose>
+            <when test="filter.sortField != null and filter.sortField != ''">
+                a.${filter.sortField}
+                <choose>
+                    <when test="filter.sortOrder != null and filter.sortOrder.toLowerCase() == 'asc'">
+                        ASC
+                    </when>
+                    <otherwise>
+                        DESC
+                    </otherwise>
+                </choose>
+            </when>
+            <otherwise>
+                a.create_time DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 根据ID查询文章详情 -->
+    <select id="findArticleById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        <include refid="Base_Where"/>
+        AND a.id = #{id}
+        AND (a.is_shared = 1 OR a.user_id = #{userId})
+    </select>
+
+    <!-- 全文搜索文章 -->
+    <select id="searchArticles" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        <include refid="Base_Where"/>
+        AND (a.is_shared = 1 OR a.user_id = #{userId})
+        AND MATCH(a.title, a.content, a.summary) AGAINST(#{keyword} IN NATURAL LANGUAGE MODE)
+        ORDER BY a.create_time DESC
+    </select>
+
+</mapper>

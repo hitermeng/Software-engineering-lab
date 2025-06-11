@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="个人文章管理系统，支持多用户、分类管理、富文本编辑、文章分享等功能" />
+    <meta name="keywords" content="文章管理,博客系统,知识管理,笔记管理" />
+    <meta name="author" content="Article Manager" />
+
+    <!-- 网站图标 -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" href="/favicon.ico" />
+
+    <!-- 预加载关键资源 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- 页面标题 -->
+    <title>文章管理系统 - 个人知识管理平台</title>
+
+    <!-- CSS重置和基础样式 -->
+    <style>
+        /* 重置样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+            'Helvetica Neue', Arial, 'Noto Sans', sans-serif,
+            'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+            'Noto Color Emoji';
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: #f0f2f5;
+        }
+
+        #app {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* 加载动画 */
+        .loading-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .loading-logo {
+            font-size: 32px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 24px;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease-out 0.2s forwards;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            margin-top: 16px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease-out 0.4s forwards;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 隐藏加载画面 */
+        .loading-container.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* 错误页面样式 */
+        .error-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #f5f5f5;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .error-icon {
+            font-size: 64px;
+            color: #ff6b6b;
+            margin-bottom: 16px;
+        }
+
+        .error-title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .error-message {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 24px;
+            max-width: 400px;
+            line-height: 1.5;
+        }
+
+        .error-button {
+            background: #409eff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .error-button:hover {
+            background: #337ecc;
+        }
+    </style>
+</head>
+<body>
+<!-- 应用容器 -->
+<div id="app">
+    <!-- 加载画面 -->
+    <div id="loading" class="loading-container">
+        <div class="loading-logo">📝 文章管理系统</div>
+        <div class="loading-spinner"></div>
+        <div class="loading-text">正在加载中...</div>
+    </div>
+
+    <!-- 错误页面 -->
+    <div id="error" class="error-container">
+        <div class="error-icon">⚠️</div>
+        <h2 class="error-title">加载失败</h2>
+        <p class="error-message">
+            很抱歉，应用加载时出现错误。请检查网络连接或刷新页面重试。
+        </p>
+        <button class="error-button" onclick="location.reload()">
+            刷新页面
+        </button>
+    </div>
+</div>
+
+<!-- 应用脚本 -->
+<script type="module" src="/src/main.ts"></script>
+
+<!-- 错误处理脚本 -->
+<script>
+    // 全局错误处理
+    window.addEventListener('error', function(event) {
+        console.error('JavaScript错误:', event.error);
+        showErrorPage();
+    });
+
+    // Promise错误处理
+    window.addEventListener('unhandledrejection', function(event) {
+        console.error('未处理的Promise错误:', event.reason);
+        showErrorPage();
+    });
+
+    // 显示错误页面
+    function showErrorPage() {
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        if (loading) loading.style.display = 'none';
+        if (error) error.style.display = 'flex';
+    }
+
+    // 隐藏加载画面
+    function hideLoading() {
+        const loading = document.getElementById('loading');
+        if (loading) {
+            loading.classList.add('hidden');
+            setTimeout(() => {
+                loading.style.display = 'none';
+            }, 500);
+        }
+    }
+
+    // Vue应用加载完成后隐藏加载画面
+    window.addEventListener('load', function() {
+        // 给Vue应用一些时间来渲染
+        setTimeout(hideLoading, 1000);
+    });
+
+    // 设置加载超时
+    setTimeout(function() {
+        const loading = document.getElementById('loading');
+        if (loading && loading.style.display !== 'none') {
+            showErrorPage();
+        }
+    }, 15000); // 15秒超时
+</script>
+
+<!-- 浏览器兼容性检查 -->
+<script>
+    // 检查浏览器兼容性
+    (function() {
+        const isSupported = (
+            'fetch' in window &&
+            'Promise' in window &&
+            'Map' in window &&
+            'Set' in window &&
+            'Symbol' in window
+        );
+
+        if (!isSupported) {
+            document.body.innerHTML = `
+            <div style="
+              position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+              background: #f5f5f5; display: flex; justify-content: center;
+              align-items: center; flex-direction: column; text-align: center;
+              font-family: Arial, sans-serif; padding: 20px;
+            ">
+              <div style="font-size: 48px; margin-bottom: 16px;">🚫</div>
+              <h2 style="color: #333; margin-bottom: 16px;">浏览器不兼容</h2>
+              <p style="color: #666; margin-bottom: 24px; max-width: 400px; line-height: 1.5;">
+                您的浏览器版本过低，无法运行此应用。请升级到最新版本的Chrome、Firefox、Safari或Edge浏览器。
+              </p>
+              <p style="color: #999; font-size: 14px;">
+                推荐使用Chrome 90+、Firefox 88+、Safari 14+或Edge 90+
+              </p>
+            </div>
+          `;
+        }
+    })();
+</script>
+</body>
+</html>
