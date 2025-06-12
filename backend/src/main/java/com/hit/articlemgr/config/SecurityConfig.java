@@ -60,7 +60,7 @@
 
 package com.hit.articlemgr.config;
 
-import com.hit.articlemgr.config.JwtAuthFilter;
+//import com.hit.articlemgr.config.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
