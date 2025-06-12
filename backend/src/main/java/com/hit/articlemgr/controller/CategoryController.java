@@ -1,13 +1,13 @@
 package com.hit.articlemgr.controller;
 
 import com.hit.articlemgr.dto.CategoryDTO;
-import com.hit.articlemgr.dto.CategoryVO;
-import com.hit.articlemgr.entity.Category;
+//import com.hit.articlemgr.dto.CategoryVO;
+//import com.hit.articlemgr.entity.Category;
 import com.hit.articlemgr.service.CategoryService;
 import com.hit.articlemgr.util.R;
-import lombok.RequiredArgsConstructor;
+//import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+//import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
