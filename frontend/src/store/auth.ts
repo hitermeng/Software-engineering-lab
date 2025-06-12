@@ -18,9 +18,18 @@ export const useAuthStore = defineStore('auth', () => {
         const savedToken = localStorage.getItem('token')
         const savedUser = localStorage.getItem('user')
 
-        if (savedToken && savedUser) {
+        if (savedToken && savedUser && savedUser !== 'undefined') {
             token.value = savedToken
-            user.value = JSON.parse(savedUser)
+            try {
+                user.value = JSON.parse(savedUser)
+            } catch (e) {
+                console.error("解析用户信息失败:", e)
+                // 清理无效的本地存储数据
+                localStorage.removeItem('user')
+                localStorage.removeItem('token')
+                token.value = null
+                user.value = null
+            }
         }
     }
 
@@ -29,13 +38,15 @@ export const useAuthStore = defineStore('auth', () => {
         try {
             loading.value = true
             const response = await authAPI.login(loginData)
+            console.log('后端登录响应的data:', response.data)
 
-            token.value = response.data.token
-            user.value = response.data.user
+            // 从后端响应中正确获取 token 和用户信息
+            token.value = response.data.accessToken
+            user.value = response.data.userInfo
 
             // 保存到本地存储
-            localStorage.setItem('token', response.data.token)
-            localStorage.setItem('user', JSON.stringify(response.data.user))
+            localStorage.setItem('token', response.data.accessToken)
+            localStorage.setItem('user', JSON.stringify(response.data.userInfo))
 
             ElMessage.success('登录成功')
             router.push('/dashboard')

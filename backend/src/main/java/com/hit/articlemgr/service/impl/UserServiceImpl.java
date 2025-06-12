@@ -3,6 +3,7 @@ package com.hit.articlemgr.service.impl;
 import com.hit.articlemgr.dto.LoginDTO;
 import com.hit.articlemgr.dto.RegisterDTO;
 import com.hit.articlemgr.dto.TokenDTO;
+import com.hit.articlemgr.dto.UserUpdateDTO;
 import com.hit.articlemgr.entity.User;
 import com.hit.articlemgr.mapper.UserMapper;
 import com.hit.articlemgr.service.UserService;
@@ -13,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
 
 /**
  * 用户服务实现类
@@ -124,5 +126,39 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean existsByEmail(String email) {
         return userMapper.existsByEmail(email) > 0;
+    }
+
+    @Override
+    @Transactional
+    public User updateUserProfile(Long userId, UserUpdateDTO userUpdateDTO) {
+        // 获取当前用户
+        User user = getUserById(userId);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+
+        // 检查用户名是否已存在（如果修改了用户名）
+        if (!user.getUsername().equals(userUpdateDTO.getUsername()) 
+            && existsByUsername(userUpdateDTO.getUsername())) {
+            throw new RuntimeException("用户名已存在");
+        }
+
+        // 检查邮箱是否已存在（如果修改了邮箱）
+        if (!user.getEmail().equals(userUpdateDTO.getEmail()) 
+            && existsByEmail(userUpdateDTO.getEmail())) {
+            throw new RuntimeException("邮箱已存在");
+        }
+
+        // 更新用户信息
+        user.setUsername(userUpdateDTO.getUsername());
+        user.setEmail(userUpdateDTO.getEmail());
+        user.setNickname(userUpdateDTO.getNickname());
+        if (StringUtils.hasText(userUpdateDTO.getAvatar())) {
+            user.setAvatar(userUpdateDTO.getAvatar());
+        }
+
+        // 保存更新
+        userMapper.updateById(user);
+        return user;
     }
 }

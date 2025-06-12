@@ -20,9 +20,10 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true },
     children: [
       {
-        path: '',
+        path: 'article',
         name: 'ArticleList',
-        component: () => import('@/views/ArticleList.vue')
+        component: () => import('@/views/ArticleList.vue'),
+        meta: { requiresAuth: true }
       },
       {
         path: 'categories',
@@ -42,6 +43,37 @@ const routes: RouteRecordRaw[] = [
         props: { isShared: true }
       }
     ]
+  },
+  {
+    path: '/articles',
+    name: 'ArticlesAlias',
+    component: () => import('@/views/ArticleList.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/permission',
+    name: 'PermissionManagement',
+    component: () => import('@/views/PermissionManagement.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/categories',
+    name: 'CategoriesAlias',
+    component: () => import('@/views/CategoryTree.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/editor/:id?',
+    name: 'EditorAlias',
+    component: () => import('@/views/Editor.vue'),
+    props: true,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/profile',
+    name: 'UserProfile',
+    component: () => import('@/views/UserProfile.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 

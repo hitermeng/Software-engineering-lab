@@ -3,6 +3,7 @@ package com.hit.articlemgr.service;
 import com.hit.articlemgr.dto.LoginDTO;
 import com.hit.articlemgr.dto.RegisterDTO;
 import com.hit.articlemgr.dto.TokenDTO;
+import com.hit.articlemgr.dto.UserUpdateDTO;
 import com.hit.articlemgr.entity.User;
 
 /**
@@ -46,4 +47,12 @@ public interface UserService {
      * 检查邮箱是否存在
      */
     boolean existsByEmail(String email);
+
+    /**
+     * 更新用户信息
+     * @param userId 用户ID
+     * @param userUpdateDTO 更新的用户信息
+     * @return 更新后的用户信息
+     */
+    User updateUserProfile(Long userId, UserUpdateDTO userUpdateDTO);
 }

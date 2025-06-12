@@ -341,7 +341,6 @@ onMounted(() => {
   fetchPopularTags()
 })
 </script>
-</script>
 
 <style scoped>
 .editor-container {

@@ -2,9 +2,7 @@ package com.hit.articlemgr;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 // 使用MyBatis-Plus的MapperScan
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.mybatis.spring.annotation.MapperScan;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 
 
 //import com.baomidou.mybatisplus.annotation.MapperScan;

@@ -84,7 +84,7 @@
           >
             <div class="card-header">
               <h3 class="article-title">{{ article.title }}</h3>
-              <el-dropdown v-if="!isShared || article.userId === authStore.currentUser?.id" @command="(command) => handleArticleCommand(command, article)">
+              <el-dropdown v-if="!isShared || article.userId === authStore.currentUser?.id" @command="(command: string) => handleArticleCommand(command, article)">
                 <el-button type="text" :icon="MoreFilled" @click.stop />
                 <template #dropdown>
                   <el-dropdown-menu>
@@ -231,6 +231,12 @@ const filterForm = reactive({
   keyword: ''
 })
 
+// 处理筛选
+const handleFilter = () => {
+  currentPage.value = 1
+  fetchArticles()
+}
+
 // 监听搜索关键词变化
 watch(() => props.searchKeyword, (newKeyword) => {
   filterForm.keyword = newKeyword
@@ -265,12 +271,6 @@ const fetchArticles = async () => {
   } finally {
     loading.value = false
   }
-}
-
-// 处理筛选
-const handleFilter = () => {
-  currentPage.value = 1
-  fetchArticles()
 }
 
 // 重置筛选

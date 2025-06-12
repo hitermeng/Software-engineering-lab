@@ -51,6 +51,10 @@
             <el-icon><EditPen /></el-icon>
             <span>写文章</span>
           </el-menu-item>
+          <el-menu-item index="permission">
+            <el-icon><Setting /></el-icon>
+            <span>权限管理</span>
+          </el-menu-item>
         </el-menu>
       </aside>
 
@@ -169,7 +173,9 @@ import {
   Folder,
   EditPen,
   View,
-  Star
+  Star,
+  Share,
+  Setting
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -209,9 +215,11 @@ const recentArticles = ref([
 
 // 处理用户下拉菜单
 const handleCommand = async (command: string) => {
+  console.log('handleCommand 被调用，命令:', command);
   switch (command) {
     case 'profile':
-      ElMessage.info('个人设置功能开发中...')
+      console.log('正在跳转到 /profile 页面...');
+      router.push('/profile')
       break
     case 'logout':
       try {
@@ -244,6 +252,9 @@ const handleMenuSelect = (index: string) => {
       break
     case 'editor':
       router.push('/editor')
+      break
+    case 'permission':
+      router.push('/permission')
       break
   }
 }

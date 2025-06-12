@@ -28,76 +28,120 @@ public class CategoryController {
      * 获取分类树
      */
     @GetMapping
-    public ResponseEntity<List<CategoryDTO>> getCategoryTree() {
-        return ResponseEntity.ok(categoryService.getCategoryTree());
+    public R<List<CategoryDTO>> getCategoryTree() {
+        try {
+            List<CategoryDTO> list = categoryService.getCategoryTree();
+            return R.success(list);
+        } catch (Exception e) {
+            return R.error(e.getMessage());
+        }
     }
 
     /**
      * 获取分类详情
      */
     @GetMapping("/{id}")
-    public ResponseEntity<CategoryDTO> getCategoryById(@PathVariable Long id) {
-        return ResponseEntity.ok(categoryService.getCategoryById(id));
+    public R<CategoryDTO> getCategoryById(@PathVariable Long id) {
+        try {
+            CategoryDTO dto = categoryService.getCategoryById(id);
+            if (dto == null) {
+                return R.notFound("分类不存在");
+            }
+            return R.success(dto);
+        } catch (Exception e) {
+            return R.error(e.getMessage());
+        }
     }
 
     /**
      * 创建分类
      */
     @PostMapping
-    public ResponseEntity<CategoryDTO> createCategory(@RequestBody CategoryDTO categoryDTO) {
-        return ResponseEntity.ok(categoryService.createCategory(categoryDTO));
+    public R<CategoryDTO> createCategory(@RequestBody CategoryDTO categoryDTO) {
+        try {
+            CategoryDTO dto = categoryService.createCategory(categoryDTO);
+            return R.success("创建成功", dto);
+        } catch (Exception e) {
+            return R.error(e.getMessage());
+        }
     }
 
     /**
      * 更新分类
      */
     @PutMapping("/{id}")
-    public ResponseEntity<CategoryDTO> updateCategory(@PathVariable Long id, @RequestBody CategoryDTO categoryDTO) {
-        categoryDTO.setId(id);
-        return ResponseEntity.ok(categoryService.updateCategory(categoryDTO));
+    public R<CategoryDTO> updateCategory(@PathVariable Long id, @RequestBody CategoryDTO categoryDTO) {
+        try {
+            categoryDTO.setId(id);
+            CategoryDTO dto = categoryService.updateCategory(categoryDTO);
+            return R.success("更新成功", dto);
+        } catch (Exception e) {
+            return R.error(e.getMessage());
+        }
     }
 
     /**
      * 删除分类
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
-        categoryService.deleteCategory(id);
-        return ResponseEntity.ok().build();
+    public R<Void> deleteCategory(@PathVariable Long id) {
+        try {
+            categoryService.deleteCategory(id);
+            return R.success("删除成功", null);
+        } catch (Exception e) {
+            return R.error(e.getMessage());
+        }
     }
 
     /**
      * 批量删除分类
      */
     @DeleteMapping("/batch")
-    public ResponseEntity<Void> batchDelete(@RequestBody List<Long> ids) {
-        categoryService.batchDelete(ids);
-        return ResponseEntity.ok().build();
+    public R<Void> batchDelete(@RequestBody List<Long> ids) {
+        try {
+            categoryService.batchDelete(ids);
+            return R.success("批量删除成功", null);
+        } catch (Exception e) {
+            return R.error(e.getMessage());
+        }
     }
 
     /**
      * 移动分类
      */
     @PutMapping("/{id}/move")
-    public ResponseEntity<Void> moveCategory(@PathVariable Long id, @RequestParam Long newParentId) {
-        categoryService.moveCategory(id, newParentId);
-        return ResponseEntity.ok().build();
+    public R<Void> moveCategory(@PathVariable Long id, @RequestParam Long newParentId) {
+        try {
+            categoryService.moveCategory(id, newParentId);
+            return R.success("移动成功", null);
+        } catch (Exception e) {
+            return R.error(e.getMessage());
+        }
     }
 
     /**
      * 更新分类排序
      */
     @PutMapping("/{id}/sort")
-    public ResponseEntity<Void> updateSort(@PathVariable Long id, @RequestParam Integer newSort) {
-        categoryService.updateSort(id, newSort);
-        return ResponseEntity.ok().build();
+    public R<Void> updateSort(@PathVariable Long id, @RequestParam Integer newSort) {
+        try {
+            categoryService.updateSort(id, newSort);
+            return R.success("排序更新成功", null);
+        } catch (Exception e) {
+            return R.error(e.getMessage());
+        }
     }
 
     /**
      * 获取可选父分类
      */
     @GetMapping("/available-parents")
-    public ResponseEntity<List<CategoryDTO>> getAvailableParents(@RequestParam(required = false) Long excludeId) {
-        return ResponseEntity.ok(categoryService.getAvailableParents(excludeId));
+    public R<List<CategoryDTO>> getAvailableParents(@RequestParam(required = false) Long excludeId) {
+        try {
+            List<CategoryDTO> list = categoryService.getAvailableParents(excludeId);
+            return R.success(list);
+        } catch (Exception e) {
+            return R.error(e.getMessage());
+        }
     }
 }

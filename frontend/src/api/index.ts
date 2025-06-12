@@ -223,4 +223,15 @@ export const searchAPI = {
     advancedSearch: (params: FilterDTO) => api.get('/search/advanced', { params })
 }
 
+export interface UpdateUserRoleDTO {
+    adminPassword: string;
+    username: string;
+    role: 'USER' | 'ADMIN';
+}
+
+export const userAPI = {
+    // 更新用户角色
+    updateUserRole: (data: UpdateUserRoleDTO) => api.put('/users/role', data)
+}
+
 export default api
