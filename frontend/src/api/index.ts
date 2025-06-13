@@ -173,11 +173,11 @@ export const categoryAPI = {
     batchDelete: (ids: number[]) => api.post('/categories/batch-delete', { ids }),
 
     // 移动分类
-    move: (id: number, parentId?: number, sort?: number) => 
+    move: (id: number, parentId?: number, sort?: number) =>
         api.put(`/categories/${id}/move`, { parentId, sort }),
 
     // 更新排序
-    updateSort: (sortData: { id: number; sort: number; parentId?: number }[]) => 
+    updateSort: (sortData: { id: number; sort: number; parentId?: number }[]) =>
         api.put('/categories/sort', { sortData })
 }
 
