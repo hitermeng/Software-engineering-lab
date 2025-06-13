@@ -76,9 +76,9 @@ export interface Article {
     summary?: string
     categoryId?: number
     categoryName?: string
-    tags?: string[]
-    status: 'DRAFT' | 'PUBLISHED'
-    isShared: boolean
+    tags?: string
+    status: number
+    isShared: number
     viewCount: number
     likeCount: number
     userId: number
@@ -114,9 +114,9 @@ export interface ArticleSaveDTO {
     content: string
     summary?: string
     categoryId?: number
-    tags?: string[]
-    status: 'DRAFT' | 'PUBLISHED'
-    isShared: boolean
+    tags?: string
+    status: number
+    isShared: number
 }
 
 export interface FilterDTO {

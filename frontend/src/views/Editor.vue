@@ -128,7 +128,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeft } from '@element-plus/icons-vue'
-import { articleAPI, type Article, type ArticleSaveDTO } from '@/api'
+import { articleAPI, type Article } from '@/api'
 import CategorySelect from '@/components/CategorySelect.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -153,8 +153,30 @@ const formRef = ref<FormInstance>()
 const quillEditorRef = ref()
 const popularTags = ref<string[]>([])
 
+// 定义表单数据类型（用于UI绑定）
+interface ArticleFormData {
+  title: string;
+  content: string;
+  summary: string;
+  categoryId?: number;
+  tags: string[]; // UI需要数组类型
+  status: 'DRAFT' | 'PUBLISHED'; // UI需要字符串类型
+  isShared: boolean; // UI需要布尔类型
+}
+
+// 定义提交数据类型（用于API请求）
+interface ArticleSubmitData {
+  title: string;
+  content: string;
+  summary: string;
+  categoryId?: number;
+  tags: string; // API需要字符串
+  status: number; // API需要数字
+  isShared: number; // API需要数字
+}
+
 // 文章表单数据
-const articleForm = ref<ArticleSaveDTO>({
+const articleForm = ref<ArticleFormData>({
   title: '',
   content: '',
   summary: '',
@@ -222,9 +244,9 @@ const fetchArticle = async (id: number) => {
       content: article.content,
       summary: article.summary || '',
       categoryId: article.categoryId,
-      tags: article.tags || [],
-      status: article.status,
-      isShared: article.isShared
+      tags: article.tags ? article.tags.split(',') : [],
+      status: article.status === 0 ? 'DRAFT' : 'PUBLISHED',
+      isShared: article.isShared === 1
     }
   } catch (error) {
     console.error('获取文章详情失败:', error)
@@ -276,9 +298,13 @@ const handleSave = async (status: 'DRAFT' | 'PUBLISHED') => {
 
     saving.value = true
 
-    const saveData: ArticleSaveDTO = {
-      ...articleForm.value,
-      status,
+    const saveData: ArticleSubmitData = {
+      title: articleForm.value.title,
+      summary: articleForm.value.summary,
+      categoryId: articleForm.value.categoryId,
+      tags: articleForm.value.tags.join(','),
+      status: status === 'DRAFT' ? 0 : 1,
+      isShared: articleForm.value.isShared ? 1 : 0,
       content: articleForm.value.content
     }
 
