@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
  *
  * @author HIT
  */
+@Transactional
 @Service
 public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> implements CategoryService {
 

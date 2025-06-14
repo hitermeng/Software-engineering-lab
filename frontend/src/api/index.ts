@@ -152,33 +152,34 @@ export const authAPI = {
 
 export const categoryAPI = {
     // 创建分类
-    create: (data: CategoryDTO) => api.post('/categories', data),
+    create: (data: CategoryDTO) => api.post('/api/categories', data),
 
     // 更新分类
-    update: (id: number, data: Partial<CategoryDTO>) => api.put(`/categories/${id}`, data),
+    update: (id: number, data: Partial<CategoryDTO>) => api.put(`/api/categories/${id}`, data),
 
     // 删除分类
-    delete: (id: number) => api.delete(`/categories/${id}`),
+    delete: (id: number) => api.delete(`/api/categories/${id}`),
 
     // 获取分类详情
-    getById: (id: number) => api.get(`/categories/${id}`),
+    getById: (id: number) => api.get(`/api/categories/${id}`),
 
     // 获取分类树
-    getTree: () => api.get('/categories/tree'),
+    // getTree: () => api.get('/categories/tree'),
+    getTree: () => api.get('/api/categories'),
 
     // 获取子分类
-    getChildren: (parentId: number) => api.get(`/categories/children/${parentId}`),
+    getChildren: (parentId: number) => api.get(`/api/categories/children/${parentId}`),
 
     // 批量删除分类
-    batchDelete: (ids: number[]) => api.post('/categories/batch-delete', { ids }),
+    batchDelete: (ids: number[]) => api.post('/api/categories/batch-delete', { ids }),
 
     // 移动分类
     move: (id: number, parentId?: number, sort?: number) =>
-        api.put(`/categories/${id}/move`, { parentId, sort }),
+        api.put(`/api/categories/${id}/move`, { parentId, sort }),
 
     // 更新排序
     updateSort: (sortData: { id: number; sort: number; parentId?: number }[]) =>
-        api.put('/categories/sort', { sortData })
+        api.put('/api/categories/sort', { sortData })
 }
 
 export const articleAPI = {

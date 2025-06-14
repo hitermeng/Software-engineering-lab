@@ -39,6 +39,13 @@ CREATE TABLE `category` (
                             FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='分类表';
 
+ALTER TABLE category
+    ADD COLUMN color VARCHAR(20) DEFAULT NULL,
+    ADD COLUMN icon VARCHAR(50) DEFAULT NULL,
+    ADD COLUMN is_active TINYINT(1) DEFAULT 1,
+    ADD COLUMN sort INT DEFAULT 0;
+
+ALTER TABLE category MODIFY user_id BIGINT DEFAULT NULL;
 -- 文章表
 CREATE TABLE `article` (
                            `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '文章ID',

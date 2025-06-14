@@ -14,6 +14,14 @@ spring:
     username: admin
     password: admin123456
     druid:
+      default-auto-commit: false
+      filter:
+        stat:
+          enabled: true
+      web-stat-filter:
+        enabled: true
+      stat-view-servlet:
+        enabled: true
       initial-size: 5
       min-idle: 5
       max-active: 20
@@ -32,9 +40,17 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
+  # Flyway
+  flyway:
+    enabled: false
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: false
+
 # MyBatis Plus 配置
 mybatis-plus:
   configuration:
+    cache-enabled: false
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   global-config:
@@ -44,6 +60,7 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
   mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.hit.articlemgr.entity
 
 # JWT 配置
 jwt:
@@ -55,4 +72,3 @@ logging:
   level:
     com.hit.articlemgr.mapper: debug
     org.springframework.security: debug
-

@@ -59,8 +59,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/categories',
     name: 'CategoriesAlias',
-    component: () => import('@/views/CategoryTree.vue'),
-    meta: { requiresAuth: true }
+    component: () => import('@/views/CategoryTree.vue')
   },
   {
     path: '/editor/:id?',
