@@ -120,9 +120,9 @@
                 <el-tag
                     v-if="!isShared"
                     size="small"
-                    :type="article.status === 'PUBLISHED' ? 'success' : 'warning'"
+                    :type="article.status === 1 ? 'success' : 'warning'"
                 >
-                  {{ article.status === 'PUBLISHED' ? '已发布' : '草稿' }}
+                  {{ article.status === 1 ? '已发布' : '草稿' }}
                 </el-tag>
 
                 <el-tag
@@ -231,18 +231,6 @@ const filterForm = reactive({
   keyword: ''
 })
 
-// 处理筛选
-const handleFilter = () => {
-  currentPage.value = 1
-  fetchArticles()
-}
-
-// 监听搜索关键词变化
-watch(() => props.searchKeyword, (newKeyword) => {
-  filterForm.keyword = newKeyword
-  handleFilter()
-}, { immediate: true })
-
 // 获取文章列表
 const fetchArticles = async () => {
   try {
@@ -272,6 +260,18 @@ const fetchArticles = async () => {
     loading.value = false
   }
 }
+
+// 处理筛选
+const handleFilter = () => {
+  currentPage.value = 1
+  fetchArticles()
+}
+
+// 监听搜索关键词变化
+watch(() => props.searchKeyword, (newKeyword) => {
+  filterForm.keyword = newKeyword
+  handleFilter()
+}, { immediate: true })
 
 // 重置筛选
 const resetFilter = () => {
