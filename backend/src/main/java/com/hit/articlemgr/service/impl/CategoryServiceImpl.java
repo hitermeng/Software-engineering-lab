@@ -27,7 +27,6 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
 
     @Override
     public List<CategoryDTO> getCategoryTree() {
-        // List<Category> categories = list();
         List<Category> categories = baseMapper.selectList(
             new QueryWrapper<Category>().eq("deleted", 0)
         );
@@ -103,19 +102,6 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
     }
 
     private List<CategoryDTO> buildTree(List<Category> categories) {
-//        List<CategoryDTO> result = new ArrayList<>();
-//        Map<Long, List<Category>> parentMap = categories.stream()
-//                .collect(Collectors.groupingBy(Category::getParentId));
-//
-//        // 获取顶级分类
-//        List<Category> rootCategories = parentMap.getOrDefault(null, new ArrayList<>());
-//        for (Category category : rootCategories) {
-//            CategoryDTO dto = convertToDTO(category);
-//            dto.setChildren(buildChildren(category.getId(), parentMap));
-//            result.add(dto);
-//        }
-//
-//        return result;
         Map<Long, List<Category>> parentMap = categories.stream()
             .collect(Collectors.groupingBy(
                 category -> category.getParentId() == null ? 0L : category.getParentId()

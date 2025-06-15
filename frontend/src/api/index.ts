@@ -164,14 +164,12 @@ export const categoryAPI = {
     getById: (id: number) => api.get(`/api/categories/${id}`),
 
     // 获取分类树
-    // getTree: () => api.get('/categories/tree'),
     getTree: () => api.get('/api/categories'),
 
     // 获取子分类
     getChildren: (parentId: number) => api.get(`/api/categories/children/${parentId}`),
 
     // 批量删除分类
-    // batchDelete: (ids: number[]) => api.post('/api/categories/batch-delete', { ids }),
     batchDelete: (ids: number[]) => api.delete('/api/categories/batch', { data: ids }),
     // 移动分类
     move: (id: number, parentId?: number, sort?: number) =>
