@@ -47,8 +47,10 @@
               clearable
               style="width: 120px"
           >
-            <el-option label="已发布" value="PUBLISHED" />
-            <el-option label="草稿" value="DRAFT" />
+<!--            <el-option label="已发布" value="PUBLISHED" />-->
+<!--            <el-option label="草稿" value="DRAFT" />-->
+            <el-option label="已发布" value="1" />
+            <el-option label="草稿" value="0" />
           </el-select>
         </el-form-item>
 
