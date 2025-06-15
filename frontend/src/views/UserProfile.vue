@@ -13,11 +13,13 @@
         <el-form-item label="头像">
           <el-upload
             class="avatar-uploader"
-            action="/api/upload" 
+            action="/api/api/users/upload"
             :show-file-list="false"
             :on-success="handleAvatarSuccess"
             :before-upload="beforeAvatarUpload"
             :headers="uploadHeaders"
+            :on-error="handleUploadError"
+            name="file"
           >
             <template #trigger>
               <el-avatar :size="80" :src="userForm.avatar" class="user-avatar">
@@ -63,13 +65,24 @@ const userForm = reactive<Partial<User>>({
 })
 
 // 上传组件的请求头
-const uploadHeaders = computed(() => ({
-  Authorization: `Bearer ${authStore.token}`
-}))
+const uploadHeaders = computed(() => {
+  const token = authStore.token
+  console.log('Current token:', token)
+  if (!token) {
+    ElMessage.error('请先登录')
+    return {}
+  }
+  const headers = {
+    Authorization: `Bearer ${token}`
+  }
+  console.log('Upload headers:', headers)
+  return headers
+})
 
 // 头像上传成功回调
-const handleAvatarSuccess = (response: any) => {
-  // 假设后端返回的数据中，图片 URL 在 response.data.url
+const handleAvatarSuccess = (response: any, file: any) => {
+  console.log('上传响应:', response)
+  console.log('文件信息:', file)
   if (response.code === 200 && response.data && response.data.url) {
     userForm.avatar = response.data.url
     ElMessage.success('头像上传成功！')
@@ -80,6 +93,7 @@ const handleAvatarSuccess = (response: any) => {
 
 // 头像上传前校验
 const beforeAvatarUpload = (rawFile: any) => {
+  console.log('准备上传文件:', rawFile)
   const isJPGPNG = rawFile.type === 'image/jpeg' || rawFile.type === 'image/png'
   const isLt2M = rawFile.size / 1024 / 1024 < 2
 
@@ -132,6 +146,14 @@ const handleSubmit = async () => {
       ElMessage.warning('请填写完整信息')
     }
   })
+}
+
+// 在script部分添加错误处理函数
+const handleUploadError = (error: any, file: any) => {
+  console.error('上传失败:', error)
+  console.error('文件信息:', file)
+  console.error('请求头:', uploadHeaders.value)
+  ElMessage.error('头像上传失败，请重试')
 }
 
 onMounted(() => {

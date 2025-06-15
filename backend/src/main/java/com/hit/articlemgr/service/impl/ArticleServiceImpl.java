@@ -168,6 +168,33 @@ public class ArticleServiceImpl implements ArticleService {
         return plainText.substring(0, 200) + "...";
     }
 
+    @Override
+    public List<ArticleVO> getRecentArticles(Long userId) {
+        LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Article::getDeleted, 0) // 未删除
+                .eq(Article::getStatus, 1) // 已发布
+                .and(w -> w.eq(Article::getUserId, userId).or().eq(Article::getIsShared, 1)) // 自己的或共享的
+                .orderByDesc(Article::getCreateTime)
+                .last("LIMIT 5"); // 获取最近5篇
+
+        List<Article> articles = articleMapper.selectList(wrapper);
+
+        // 转换为 ArticleVO
+        List<ArticleVO> articleVOs = articles.stream().map(article -> {
+            ArticleVO vo = new ArticleVO();
+            vo.setId(article.getId());
+            vo.setTitle(article.getTitle());
+            vo.setCategoryId(article.getCategoryId());
+            vo.setTags(article.getTags());
+            vo.setStatus(article.getStatus());
+            vo.setCreateTime(article.getCreateTime());
+            // 可以根据需要复制更多字段
+            return vo;
+        }).collect(Collectors.toList());
+
+        return articleVOs;
+    }
+
     /**
      * 根据ID获取文章实体
      */

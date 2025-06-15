@@ -174,4 +174,18 @@ public class ArticleController {
             return R.error(e.getMessage());
         }
     }
+
+    /**
+     * 获取最近文章列表
+     */
+    @GetMapping("/recent")
+    public R<List<ArticleVO>> getRecentArticles(@AuthenticationPrincipal Long userId) {
+        try {
+            // 默认获取最近5篇已发布的文章
+            List<ArticleVO> articles = articleService.getRecentArticles(userId);
+            return R.success(articles);
+        } catch (Exception e) {
+            return R.error(e.getMessage());
+        }
+    }
 }

@@ -39,6 +39,7 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+      enabled: true
 
   # Flyway
   flyway:
@@ -46,6 +47,18 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
     validate-on-migrate: false
+
+  # 静态资源访问配置
+  mvc:
+    static-path-pattern: /uploads/**
+  web:
+    resources:
+      static-locations: classpath:/static/,file:${file.upload-dir}/
+
+# 文件上传配置
+file:
+  upload-dir: uploads
+  access-path: /api/uploads
 
 # MyBatis Plus 配置
 mybatis-plus:
@@ -72,3 +85,4 @@ logging:
   level:
     com.hit.articlemgr.mapper: debug
     org.springframework.security: debug
+    com.hit.articlemgr.controller: debug

@@ -65,4 +65,9 @@ public interface ArticleService {
      * 生成文章摘要（基于大模型）
      */
     String generateSummary(String content);
+
+    /**
+     * 获取最近文章列表
+     */
+    List<ArticleVO> getRecentArticles(Long userId);
 }

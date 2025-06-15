@@ -5,6 +5,7 @@ import com.hit.articlemgr.dto.RegisterDTO;
 import com.hit.articlemgr.dto.TokenDTO;
 import com.hit.articlemgr.dto.UserUpdateDTO;
 import com.hit.articlemgr.entity.User;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 用户服务接口
@@ -55,4 +56,12 @@ public interface UserService {
      * @return 更新后的用户信息
      */
     User updateUserProfile(Long userId, UserUpdateDTO userUpdateDTO);
+
+    /**
+     * 上传用户头像
+     * @param userId 用户ID
+     * @param file 头像文件
+     * @return 头像URL
+     */
+    String uploadAvatar(Long userId, MultipartFile file);
 }

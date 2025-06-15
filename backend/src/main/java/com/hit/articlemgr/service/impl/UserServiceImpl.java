@@ -14,6 +14,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.UUID;
 
 
 /**
@@ -31,6 +37,12 @@ public class UserServiceImpl implements UserService {
 
     @Value("${jwt.expiration}")
     private Long jwtExpiration;
+
+    @Value("${file.upload-dir:uploads}")
+    private String uploadDir;
+
+    @Value("${file.access-path:/uploads}")
+    private String accessPath;
 
     @Override
     @Transactional
@@ -160,5 +172,42 @@ public class UserServiceImpl implements UserService {
         // 保存更新
         userMapper.updateById(user);
         return user;
+    }
+
+    @Override
+    @Transactional
+    public String uploadAvatar(Long userId, MultipartFile file) {
+        // 获取当前用户
+        User user = getUserById(userId);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+
+        try {
+            // 创建上传目录
+            Path uploadPath = Paths.get(uploadDir);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            // 生成唯一文件名
+            String originalFilename = file.getOriginalFilename();
+            String extension = originalFilename != null ? 
+                originalFilename.substring(originalFilename.lastIndexOf(".")) : ".jpg";
+            String filename = UUID.randomUUID().toString() + extension;
+
+            // 保存文件
+            Path filePath = uploadPath.resolve(filename);
+            Files.copy(file.getInputStream(), filePath);
+
+            // 更新用户头像URL
+            String avatarUrl = accessPath + "/" + filename;
+            user.setAvatar(avatarUrl);
+            userMapper.updateById(user);
+
+            return avatarUrl;
+        } catch (IOException e) {
+            throw new RuntimeException("文件上传失败", e);
+        }
     }
 }

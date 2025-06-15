@@ -162,10 +162,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { articleAPI } from '@/api'
 import {
   ArrowDown,
   House,
@@ -184,8 +185,10 @@ const authStore = useAuthStore()
 // 当前选中的菜单
 const currentMenu = ref('dashboard')
 
-// 用户头像占位
-const userAvatar = ref('')
+// 用户头像，改为计算属性
+const userAvatar = computed(() => {
+  return authStore.user?.avatar || '/default-avatar.png' // 提供一个默认头像路径，防止为空
+})
 
 // 统计数据
 const stats = reactive({
@@ -276,17 +279,36 @@ const editArticle = (id: number) => {
   router.push(`/editor/${id}`)
 }
 
-// 模拟加载统计数据
-const loadStats = async () => {
-  // 这里后续会调用真实的API
-  stats.totalArticles = 25
-  stats.totalCategories = 8
-  stats.totalViews = 1234
-  stats.publishedArticles = 20
+// 获取文章统计数据
+const fetchArticleStatistics = async () => {
+  try {
+    const response = await articleAPI.getStatistics() // 假设后端有根据用户ID获取统计数据，或不需要用户ID
+    stats.totalArticles = response.data.totalArticles
+    stats.totalCategories = response.data.totalCategories
+    stats.totalViews = response.data.totalViews
+    stats.publishedArticles = response.data.publishedArticles
+  } catch (error) {
+    console.error('获取文章统计数据失败:', error)
+  }
+}
+
+// 获取最近文章
+const fetchRecentArticles = async () => {
+  try {
+    const response = await articleAPI.getRecent() // 假设后端有根据用户ID获取最近文章，或不需要用户ID
+    recentArticles.value = response.data
+  } catch (error) {
+    console.error('获取最近文章失败:', error)
+  }
 }
 
 onMounted(() => {
-  loadStats()
+  // 确保在组件挂载时总是获取最新用户信息，无论authStore.user是否已存在
+  authStore.fetchProfile()
+
+  // 调用获取统计数据和最近文章的方法
+  fetchArticleStatistics()
+  fetchRecentArticles()
 })
 </script>
 
