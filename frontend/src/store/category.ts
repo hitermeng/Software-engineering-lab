@@ -50,8 +50,8 @@ export const useCategoryStore = defineStore('category', () => {
     try {
       const response = await categoryAPI.getTree()
       categories.value = response.data || []
-      flatCategories.value = flatCategoriesComputed.value
-      return categories.value
+      // flatCategories.value = flatCategoriesComputed.value
+      // return categories.value
     } catch (error: any) {
       ElMessage.error(error.message || '获取分类失败')
       console.error('获取分类树失败:', error)

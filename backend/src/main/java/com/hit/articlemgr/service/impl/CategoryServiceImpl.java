@@ -1,6 +1,7 @@
 package com.hit.articlemgr.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hit.articlemgr.dto.CategoryDTO;
 import com.hit.articlemgr.entity.Category;
@@ -26,7 +27,10 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
 
     @Override
     public List<CategoryDTO> getCategoryTree() {
-        List<Category> categories = list();
+        // List<Category> categories = list();
+        List<Category> categories = baseMapper.selectList(
+            new QueryWrapper<Category>().eq("deleted", 0)
+        );
         return buildTree(categories);
     }
 
@@ -99,19 +103,26 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
     }
 
     private List<CategoryDTO> buildTree(List<Category> categories) {
-        List<CategoryDTO> result = new ArrayList<>();
+//        List<CategoryDTO> result = new ArrayList<>();
+//        Map<Long, List<Category>> parentMap = categories.stream()
+//                .collect(Collectors.groupingBy(Category::getParentId));
+//
+//        // 获取顶级分类
+//        List<Category> rootCategories = parentMap.getOrDefault(null, new ArrayList<>());
+//        for (Category category : rootCategories) {
+//            CategoryDTO dto = convertToDTO(category);
+//            dto.setChildren(buildChildren(category.getId(), parentMap));
+//            result.add(dto);
+//        }
+//
+//        return result;
         Map<Long, List<Category>> parentMap = categories.stream()
-                .collect(Collectors.groupingBy(Category::getParentId));
-
-        // 获取顶级分类
-        List<Category> rootCategories = parentMap.getOrDefault(null, new ArrayList<>());
-        for (Category category : rootCategories) {
-            CategoryDTO dto = convertToDTO(category);
-            dto.setChildren(buildChildren(category.getId(), parentMap));
-            result.add(dto);
-        }
-
-        return result;
+            .collect(Collectors.groupingBy(
+                category -> category.getParentId() == null ? 0L : category.getParentId()
+            ));
+        
+        // 从根节点（parentId=0）开始构建
+        return buildChildren(0L, parentMap);
     }
 
     private List<CategoryDTO> buildChildren(Long parentId, Map<Long, List<Category>> parentMap) {

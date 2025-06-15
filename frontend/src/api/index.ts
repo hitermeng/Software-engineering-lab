@@ -171,8 +171,8 @@ export const categoryAPI = {
     getChildren: (parentId: number) => api.get(`/api/categories/children/${parentId}`),
 
     // 批量删除分类
-    batchDelete: (ids: number[]) => api.post('/api/categories/batch-delete', { ids }),
-
+    // batchDelete: (ids: number[]) => api.post('/api/categories/batch-delete', { ids }),
+    batchDelete: (ids: number[]) => api.delete('/api/categories/batch', { data: ids }),
     // 移动分类
     move: (id: number, parentId?: number, sort?: number) =>
         api.put(`/api/categories/${id}/move`, { parentId, sort }),
