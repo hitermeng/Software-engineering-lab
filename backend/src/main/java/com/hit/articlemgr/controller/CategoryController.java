@@ -7,6 +7,7 @@ import com.hit.articlemgr.service.CategoryService;
 import com.hit.articlemgr.util.R;
 //import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 //import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -57,9 +58,9 @@ public class CategoryController {
      * 创建分类
      */
     @PostMapping
-    public R<CategoryDTO> createCategory(@RequestBody CategoryDTO categoryDTO) {
+    public R<CategoryDTO> createCategory(@RequestBody CategoryDTO categoryDTO, Authentication authentication) {
         try {
-            CategoryDTO dto = categoryService.createCategory(categoryDTO);
+            CategoryDTO dto = categoryService.createCategory(categoryDTO, authentication);
             return R.success("创建成功", dto);
         } catch (Exception e) {
             return R.error(e.getMessage());

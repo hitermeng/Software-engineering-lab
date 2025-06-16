@@ -244,7 +244,7 @@ const fetchArticle = async (id: number) => {
       content: article.content,
       summary: article.summary || '',
       categoryId: article.categoryId,
-      tags: article.tags ? article.tags.split(',') : [],
+      tags: typeof article.tags === 'string' ? article.tags.split(',') : (article.tags || []),
       status: article.status === 0 ? 'DRAFT' : 'PUBLISHED',
       isShared: article.isShared === 1
     }

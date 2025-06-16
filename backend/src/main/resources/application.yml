@@ -86,3 +86,8 @@ logging:
     com.hit.articlemgr.mapper: debug
     org.springframework.security: debug
     com.hit.articlemgr.controller: debug
+
+llm:
+  api:
+    url: "https://help.aliyun.com/zh/model-studio/getting-started/models" # 替换为你的大模型API的实际URL
+    key: "sk-c511d9f60a8b4408adaf0f20d750a7aa"     # 替换为你的大模型API的实际密钥

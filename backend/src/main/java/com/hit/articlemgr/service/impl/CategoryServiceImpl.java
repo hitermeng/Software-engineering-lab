@@ -10,6 +10,7 @@ import com.hit.articlemgr.service.CategoryService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.Authentication;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,9 +42,11 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
 
     @Override
     @Transactional
-    public CategoryDTO createCategory(CategoryDTO categoryDTO) {
+    public CategoryDTO createCategory(CategoryDTO categoryDTO, Authentication authentication) {
         Category category = new Category();
         BeanUtils.copyProperties(categoryDTO, category);
+        Long userId = Long.parseLong(authentication.getName());
+        category.setUserId(userId);
         save(category);
         return convertToDTO(category);
     }

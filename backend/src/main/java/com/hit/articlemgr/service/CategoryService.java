@@ -2,6 +2,7 @@ package com.hit.articlemgr.service;
 
 import com.hit.articlemgr.dto.CategoryDTO;
 import java.util.List;
+import org.springframework.security.core.Authentication;
 
 /**
  * 分类服务接口
@@ -13,7 +14,7 @@ public interface CategoryService {
     
     CategoryDTO getCategoryById(Long id);
     
-    CategoryDTO createCategory(CategoryDTO categoryDTO);
+    CategoryDTO createCategory(CategoryDTO categoryDTO, Authentication authentication);
     
     CategoryDTO updateCategory(CategoryDTO categoryDTO);
     

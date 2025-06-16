@@ -4,7 +4,7 @@ import { ElMessage } from 'element-plus'
 // 创建axios实例
 const api = axios.create({
     baseURL: '/api',
-    timeout: 10000
+    timeout: 60000
 })
 
 // 请求拦截器
@@ -209,7 +209,10 @@ export const articleAPI = {
     getStatistics: () => api.get('/articles/statistics'),
 
     // 生成文章摘要
-    generateSummary: (content: string) => api.post('/articles/generate-summary', { content })
+    generateSummary: (content: string) => api.post('/articles/generate-summary', { content }),
+
+    // 获取最近文章列表
+    getRecentArticles: () => api.get('/articles/recent')
 }
 
 export const searchAPI = {
