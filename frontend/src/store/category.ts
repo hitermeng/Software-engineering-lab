@@ -8,7 +8,6 @@ export const useCategoryStore = defineStore('category', () => {
   const categories = ref<Category[]>([])
   const loading = ref(false)
   const selectedCategory = ref<Category | null>(null)
-  const flatCategories = ref<Category[]>([])
 
   // 计算属性
   // 分类树
@@ -30,7 +29,7 @@ export const useCategoryStore = defineStore('category', () => {
   })
 
   // 平铺分类列表（带level）
-  const flatCategoriesComputed = computed(() => {
+  const flatCategories = computed(() => {
     const flatten = (cats: Category[], level = 0): Category[] => {
       const result: Category[] = []
       cats.forEach(cat => {
@@ -227,10 +226,9 @@ export const useCategoryStore = defineStore('category', () => {
     categories,
     loading,
     selectedCategory,
-    flatCategories,
     // 计算属性
     categoryTree,
-    flatCategoriesComputed,
+    flatCategories,
     // 方法
     fetchCategoryTree,
     createCategory,

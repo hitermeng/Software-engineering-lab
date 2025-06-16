@@ -76,15 +76,15 @@ export interface Article {
     summary?: string
     categoryId?: number
     categoryName?: string
-    tags?: string
+    tags?: string | string[]
     status: number
     isShared: number
     viewCount: number
     likeCount: number
     userId: number
     username: string
-    createdAt: string
-    updatedAt: string
+    createTime: string
+    updateTime: string
 }
 
 export interface LoginDTO {

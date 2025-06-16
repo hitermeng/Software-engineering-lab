@@ -13,7 +13,7 @@
         <el-button
             v-if="!isShared"
             type="primary"
-            @click="$router.push('/editor')"
+            @click="$router.push('/dashboard/editor')"
         >
           <el-icon><EditPen /></el-icon>
           写文章
@@ -47,8 +47,8 @@
               clearable
               style="width: 120px"
           >
-<!--            <el-option label="已发布" value="PUBLISHED" />-->
-<!--            <el-option label="草稿" value="DRAFT" />-->
+            <!--            <el-option label="已发布" value="PUBLISHED" />-->
+            <!--            <el-option label="草稿" value="DRAFT" />-->
             <el-option label="已发布" value="1" />
             <el-option label="草稿" value="0" />
           </el-select>
@@ -149,20 +149,21 @@
 
               <div class="article-info">
                 <span class="author" v-if="isShared">{{ article.username }}</span>
-                <span class="date">{{ formatDate(article.updatedAt) }}</span>
+                <span class="date">{{ formatDate(article.updateTime) }}</span>
               </div>
             </div>
 
             <!-- 标签 -->
             <div v-if="article.tags && article.tags.length > 0" class="article-tags">
-              <el-tag
-                  v-for="tag in article.tags"
-                  :key="tag"
-                  size="small"
-                  effect="plain"
-              >
-                {{ tag }}
-              </el-tag>
+              <template v-for="tag in article.tags" :key="tag">
+                <el-tag
+                    v-if="tag && tag.trim() !== ''"
+                    size="small"
+                    effect="plain"
+                >
+                  {{ tag }}
+                </el-tag>
+              </template>
             </div>
           </div>
         </div>
@@ -187,7 +188,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, onMounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   EditPen,
@@ -253,8 +254,33 @@ const fetchArticles = async () => {
         ? await articleAPI.getSharedList(params)
         : await articleAPI.getList(params)
 
-    articles.value = response.data.content || []
-    totalCount.value = response.data.totalElements || 0
+    // 获取分页数据
+    const pageData = response.data
+    let rawArticles: any[] = []
+    let total = 0
+
+    // 处理不同的分页数据结构
+    if (pageData.records) {
+      rawArticles = pageData.records
+      total = pageData.total
+    } else if (pageData.content) {
+      rawArticles = pageData.content
+      total = pageData.totalElements
+    } else {
+      rawArticles = pageData
+      total = pageData.length || 0
+    }
+
+    // 处理标签字段
+    articles.value = rawArticles.map(article => ({
+      ...article,
+      // 确保标签是数组格式
+      tags: typeof article.tags === 'string' ? article.tags.split(',') : article.tags || []
+    }))
+
+    totalCount.value = total
+    // articles.value = response.data.content || []
+    // totalCount.value = response.data.totalElements || 0
   } catch (error) {
     console.error('获取文章列表失败:', error)
     ElMessage.error('获取文章列表失败')
@@ -299,14 +325,14 @@ const handlePageSizeChange = (size: number) => {
 
 // 查看文章
 const viewArticle = (id: number) => {
-  router.push(`/dashboard/editor/${id}`)
+  router.push(`/editor/${id}`)
 }
 
 // 处理文章命令
 const handleArticleCommand = async (command: string, article: Article) => {
   switch (command) {
     case 'edit':
-      router.push(`/dashboard/editor/${article.id}`)
+      router.push(`/editor/${article.id}`)
       break
     case 'delete':
       await handleDeleteArticle(article)

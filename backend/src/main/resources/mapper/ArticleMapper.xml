@@ -44,12 +44,13 @@
     <select id="findArticleList" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/>
         <include refid="Base_Where"/>
-        <if test="filter.onlyMine != null and filter.onlyMine">
-            AND a.user_id = #{userId}
-        </if>
-        <if test="filter.onlyMine == null or !filter.onlyMine">
-            AND (a.is_shared = 1 OR a.user_id = #{userId})
-        </if>
+
+        <!-- 统一处理数据权限 -->
+        AND (
+        a.user_id = #{userId}
+        OR a.is_shared = 1
+        )
+
         <if test="filter.keyword != null and filter.keyword != ''">
             AND (a.title LIKE CONCAT('%', #{filter.keyword}, '%')
             OR a.content LIKE CONCAT('%', #{filter.keyword}, '%')
@@ -67,24 +68,17 @@
         <if test="filter.status != null">
             AND a.status = #{filter.status}
         </if>
-        <if test="filter.startTime != null">
-            AND a.create_time >= #{filter.startTime}
+        <if test="filter.startDate != null and filter.startDate != ''">
+            AND DATE(a.create_time) >= DATE(#{filter.startDate})
         </if>
-        <if test="filter.endTime != null">
-            AND a.create_time &lt;= #{filter.endTime}
+        <if test="filter.endDate != null and filter.endDate != ''">
+            AND DATE(a.create_time) &lt;= DATE(#{filter.endDate})
         </if>
         ORDER BY
         <choose>
-            <when test="filter.sortField != null and filter.sortField != ''">
-                a.${filter.sortField}
-                <choose>
-                    <when test="filter.sortOrder != null and filter.sortOrder.toLowerCase() == 'asc'">
-                        ASC
-                    </when>
-                    <otherwise>
-                        DESC
-                    </otherwise>
-                </choose>
+            <when test="filter.sort != null and filter.sort != ''">
+                <!-- 处理类似 "updatedAt,desc" 的字符串 -->
+                ${@com.hit.articlemgr.util.SortUtil@parseSort(filter.sort)}
             </when>
             <otherwise>
                 a.create_time DESC
