@@ -20,7 +20,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Collections;
 
 /**
  * JWT认证过滤器
@@ -63,9 +62,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     User user = userService.getUserById(userId);
                     List<SimpleGrantedAuthority> authorities = new ArrayList<>();
                     if (user != null && StringUtils.hasText(user.getRole())) {
-                        authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole()));
+                        // 确保角色前缀正确
+                        String role = user.getRole().startsWith("ROLE_") ? user.getRole() : "ROLE_" + user.getRole();
+                        authorities.add(new SimpleGrantedAuthority(role));
+                        log.debug("User roles: {}", authorities);
                     }
-                    log.debug("User roles: {}", authorities);
 
                     // 创建认证对象
                     UsernamePasswordAuthenticationToken authentication =

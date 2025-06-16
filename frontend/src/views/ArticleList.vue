@@ -13,7 +13,7 @@
         <el-button
             v-if="!isShared"
             type="primary"
-            @click="$router.push('/dashboard/editor')"
+            @click="$router.push('/editor')"
         >
           <el-icon><EditPen /></el-icon>
           写文章
@@ -187,7 +187,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch, computed } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   EditPen,

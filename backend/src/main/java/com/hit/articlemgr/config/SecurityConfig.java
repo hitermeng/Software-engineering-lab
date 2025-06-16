@@ -41,7 +41,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/register", "/auth/login", "/auth/validate").permitAll()
                         .requestMatchers("/articles/shared/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()  // 允许访问上传的文件
-                        .requestMatchers("/users/upload").authenticated()
+                        .requestMatchers("/api/users/upload").authenticated()
+                        .requestMatchers("/api/users/role").authenticated()  // 允许已登录用户访问角色管理接口
                         .anyRequest().authenticated())
                 .userDetailsService(userDetailsService)          // 使用接口
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

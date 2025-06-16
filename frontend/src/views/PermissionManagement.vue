@@ -22,6 +22,7 @@
           <el-select v-model="permissionForm.newRole" placeholder="请选择角色">
             <el-option label="普通用户" value="USER"></el-option>
             <el-option label="管理员" value="ADMIN"></el-option>
+            <el-option label="禁用" value="DISABLED"></el-option>
           </el-select>
         </el-form-item>
 
@@ -38,20 +39,20 @@
 import { ref, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
-import { userAPI } from '@/api' // 假设存在 userAPI，稍后会定义
+import { userAPI } from '@/api'
 import { useRouter } from 'vue-router'
 
 interface PermissionForm {
   adminPassword: string
   targetUsername: string
-  newRole: 'USER' | 'ADMIN'
+  newRole: 'USER' | 'ADMIN' | 'DISABLED'
 }
 
 const permissionFormRef = ref<FormInstance>()
 const permissionForm = reactive<PermissionForm>({
   adminPassword: '',
   targetUsername: '',
-  newRole: 'USER' // 默认新角色为普通用户
+  newRole: 'USER'
 })
 
 const rules = reactive<FormRules<PermissionForm>>({
@@ -73,32 +74,49 @@ const handleSubmit = async () => {
   await permissionFormRef.value.validate(async (valid) => {
     if (valid) {
       try {
+        const roleText = permissionForm.newRole === 'DISABLED' ? '禁用' : 
+                        permissionForm.newRole === 'ADMIN' ? '管理员' : '普通用户'
+        
         await ElMessageBox.confirm(
-            `确定要将用户 "${permissionForm.targetUsername}" 的权限修改为 "${permissionForm.newRole === 'ADMIN' ? '管理员' : '普通用户'}" 吗？`,
-            '权限修改确认',
-            {
-              confirmButtonText: '确定',
-              cancelButtonText: '取消',
-              type: 'warning'
-            }
+          `确定要将用户 "${permissionForm.targetUsername}" 的权限修改为 "${roleText}" 吗？`,
+          '权限修改确认',
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
         )
 
-        // 调用后端API进行权限修改
-        // 假设 userAPI.updateUserRole 方法接收 adminPassword, targetUsername 和 newRole
-        // 你需要根据实际后端接口调整这里
-        await userAPI.updateUserRole({
-          adminPassword: permissionForm.adminPassword,
-          username: permissionForm.targetUsername,
-          role: permissionForm.newRole
-        })
+        if (permissionForm.newRole === 'DISABLED') {
+          // 更新用户状态为禁用
+          await userAPI.updateUserStatus(
+            permissionForm.targetUsername,
+            0,
+            permissionForm.adminPassword
+          )
+        } else {
+          // 更新用户角色
+          await userAPI.updateUserRole({
+            adminPassword: permissionForm.adminPassword,
+            username: permissionForm.targetUsername,
+            role: permissionForm.newRole
+          })
+          
+          // 确保用户状态为启用
+          await userAPI.updateUserStatus(
+            permissionForm.targetUsername,
+            1,
+            permissionForm.adminPassword
+          )
+        }
 
         ElMessage.success('权限修改成功！')
-        // 可以选择清空表单或进行其他操作
+        // 清空表单
         if (permissionFormRef.value) {
           permissionFormRef.value.resetFields()
         }
       } catch (error: any) {
-        if (error !== 'cancel') { // 排除用户取消操作
+        if (error !== 'cancel') {
           console.error('权限修改失败:', error)
           ElMessage.error(error.response?.data?.message || '权限修改失败，请检查管理员密码或用户账号')
         }
@@ -113,12 +131,11 @@ const handleSubmit = async () => {
 <style scoped>
 .permission-management-container {
   padding: 20px;
-  max-width: 600px;
-  margin: 0 auto;
 }
 
 .box-card {
-  margin-top: 20px;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .card-header {

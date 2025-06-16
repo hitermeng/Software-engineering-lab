@@ -230,7 +230,16 @@ export interface UpdateUserRoleDTO {
 
 export const userAPI = {
     // 更新用户角色
-    updateUserRole: (data: UpdateUserRoleDTO) => api.put('/users/role', data)
+    updateUserRole: (data: UpdateUserRoleDTO) => api.put('/api/users/role', data),
+    
+    // 更新用户状态
+    updateUserStatus: (username: string, status: number, adminPassword: string) => 
+        api.put(`/api/users/${username}/status`, null, {
+            params: {
+                status,
+                adminPassword
+            }
+        })
 }
 
 export default api
