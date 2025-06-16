@@ -122,7 +122,7 @@ export interface ArticleSaveDTO {
 export interface FilterDTO {
     keyword?: string
     categoryId?: number
-    tags?: string[]
+    tag?: string
     status?: string
     startDate?: string
     endDate?: string
@@ -130,6 +130,35 @@ export interface FilterDTO {
     page?: number
     size?: number
     sort?: string
+    sortField?: string
+    sortOrder?: string
+}
+
+export interface IPage<T> {
+    records: T[]
+    total: number
+    size: number
+    current: number
+    pages: number
+}
+
+export interface ArticleVO {
+    id: number
+    title: string
+    content: string
+    summary?: string
+    categoryId?: number
+    categoryName?: string
+    tags: string  // 后端返回的是字符串
+    tagArray?: string[]  // 前端转换后的数组
+    status: number
+    isShared: number
+    viewCount: number
+    likeCount: number
+    userId: number
+    username: string
+    createTime: string
+    updateTime: string
 }
 
 // API接口
@@ -194,7 +223,7 @@ export const articleAPI = {
     getById: (id: number) => api.get(`/articles/${id}`),
 
     // 分页查询文章列表
-    getList: (params: FilterDTO) => api.get('/articles', { params }),
+    getList: (params: FilterDTO) => api.get<IPage<ArticleVO>>('/articles', { params }),
 
     // 获取共享文章列表
     getSharedList: (params: FilterDTO) => api.get('/articles/shared', { params }),
@@ -216,13 +245,30 @@ export const articleAPI = {
 }
 
 export const searchAPI = {
-    // 全文搜索
-    search: (keyword: string, params?: FilterDTO) => api.get('/search', {
-        params: { keyword, ...params }
-    }),
+    // 基本搜索
+    basicSearch: (params: {
+        keyword: string
+        page?: number
+        size?: number
+    }) => api.get<IPage<ArticleVO>>('/search', { params }),
 
     // 高级搜索
-    advancedSearch: (params: FilterDTO) => api.get('/search/advanced', { params })
+    advancedSearch: (params: {
+        keyword?: string
+        categoryId?: number
+        tag?: string
+        sortField?: string
+        sortOrder?: string
+        page?: number
+        size?: number
+    }) => api.get<IPage<ArticleVO>>('/search/advanced', { params }),
+
+    // 获取热门搜索标签
+    getHotSearchTags: () => api.get<string[]>('/articles/tags/popular'),
+
+    // 获取搜索建议
+    getSuggestions: (keyword: string) =>
+        api.get<string[]>(`/search/suggestions?keyword=${keyword}`)
 }
 
 export interface UpdateUserRoleDTO {

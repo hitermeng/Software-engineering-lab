@@ -6,6 +6,20 @@
         <h1 class="logo">📝 文章管理系统</h1>
       </div>
       <div class="header-right">
+        <div class="search-box">
+          <el-input
+              v-model="searchKeyword"
+              placeholder="搜索文章..."
+              clearable
+              @keyup.enter="goToSearch"
+              @clear="clearSearch"
+          >
+            <template #append>
+              <el-button :icon="Search" @click="goToSearch" />
+            </template>
+          </el-input>
+        </div>
+
         <el-dropdown @command="handleCommand">
           <span class="el-dropdown-link">
             <el-avatar :size="32" :src="userAvatar">
@@ -107,6 +121,58 @@
             </div>
           </div>
 
+          <!-- 搜索卡片 -->
+          <div class="search-card">
+            <h3>快速搜索</h3>
+            <div class="search-options">
+              <el-input
+                  v-model="quickSearchKeyword"
+                  placeholder="输入关键词..."
+                  clearable
+                  @keyup.enter="quickSearch"
+                  class="quick-search-input"
+              >
+                <template #append>
+                  <el-button type="primary" @click="quickSearch">搜索</el-button>
+                </template>
+              </el-input>
+
+              <div class="search-tips">
+                <span>试试搜索：</span>
+                <el-tag
+                    v-for="(tag, index) in searchSuggestions"
+                    :key="index"
+                    effect="plain"
+                    @click="useSuggestion(tag)"
+                >
+                  {{ tag }}
+                </el-tag>
+              </div>
+
+              <el-button
+                  type="text"
+                  @click="goToAdvancedSearch"
+                  class="advanced-search-btn"
+              >
+                <el-icon><Search /></el-icon>
+                进入高级搜索
+              </el-button>
+            </div>
+            <div class="hot-tags">
+              <span>热门搜索：</span>
+              <el-tag
+                  v-for="tag in hotTags"
+                  :key="tag"
+                  type="info"
+                  effect="plain"
+                  @click="useSuggestion(tag)"
+                  class="hot-tag"
+              >
+                {{ tag }}
+              </el-tag>
+            </div>
+          </div>
+
           <!-- 快速操作 -->
           <div class="quick-actions">
             <h3>快速操作</h3>
@@ -166,7 +232,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { articleAPI } from '@/api'
+import { articleAPI, searchAPI, ArticleVO } from '@/api'
 import {
   ArrowDown,
   House,
@@ -176,11 +242,80 @@ import {
   View,
   Star,
   Share,
-  Setting
+  Setting,
+  Search
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+
+// 搜索关键词
+const searchKeyword = ref('')
+const quickSearchKeyword = ref('')
+const searchSuggestions = ref<string[]>(['最新文章', '技术分享', '产品更新', '使用教程'])
+const hotTags = ref<string[]>([]) // 热门标签
+
+// 获取热门搜索标签
+const fetchHotTags = async () => {
+  try {
+    const response = await searchAPI.getHotSearchTags()
+    hotTags.value = response.data
+  } catch (error) {
+    console.error('获取热门标签失败:', error)
+  }
+}
+
+// 跳转到搜索页面
+const goToSearch = () => {
+  if (searchKeyword.value.trim()) {
+    router.push({
+      path: '/search',
+      query: { q: searchKeyword.value.trim() }
+    }).catch(err => {
+      console.log('导航错误:', err)
+      ElMessage.error('导航失败: ' + err.message)
+    })
+  } else {
+    ElMessage.warning('请输入搜索关键词')
+  }
+}
+
+// 清空搜索
+const clearSearch = () => {
+  searchKeyword.value = ''
+}
+
+// 快速搜索
+const quickSearch = () => {
+  if (quickSearchKeyword.value.trim()) {
+    router.push({
+      path: '/search',
+      query: { q: quickSearchKeyword.value.trim() }
+    }).catch(err => {
+      console.log('导航错误:', err)
+      ElMessage.error('导航失败: ' + err.message)
+    })
+  } else {
+    ElMessage.warning('请输入搜索关键词')
+  }
+}
+
+// 使用搜索建议
+const useSuggestion = (suggestion: string) => {
+  quickSearchKeyword.value = suggestion
+  quickSearch()
+}
+
+// 进入高级搜索
+const goToAdvancedSearch = () => {
+  router.push({
+    path: '/search', // 使用路径而不是名称
+    query: { advanced: 'true' }
+  }).catch(err => {
+    console.log('导航错误:', err)
+    ElMessage.error('导航失败: ' + err.message)
+  })
+}
 
 // 当前选中的菜单
 const currentMenu = ref('dashboard')
@@ -295,20 +430,38 @@ const fetchArticleStatistics = async () => {
 // 获取最近文章
 const fetchRecentArticles = async () => {
   try {
-    const response = await articleAPI.getRecent() // 假设后端有根据用户ID获取最近文章，或不需要用户ID
-    recentArticles.value = response.data
+    const response = await articleAPI.getList({
+      page: 1,
+      size: 5, // 获取最近的5篇文章
+      sort: 'create_time,desc' // 按创建时间降序排序
+    })
+    // recentArticles.value = response.data
+    // 转换数据格式以匹配前端
+    recentArticles.value = response.data.records.map((article: ArticleVO) => ({
+      id: article.id,
+      title: article.title,
+      category: article.categoryName || '未分类',
+      status: article.status === 1 ? '已发布' : '草稿',
+      createdAt: formatDate(article.createTime) // 格式化日期
+    }))
   } catch (error) {
     console.error('获取最近文章失败:', error)
   }
 }
 
-onMounted(() => {
-  // 确保在组件挂载时总是获取最新用户信息，无论authStore.user是否已存在
-  authStore.fetchProfile()
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  })
+}
 
-  // 调用获取统计数据和最近文章的方法
+onMounted(() => {
+  authStore.fetchProfile()
   fetchArticleStatistics()
   fetchRecentArticles()
+  fetchHotTags() // 获取热门标签
 })
 </script>
 
@@ -515,4 +668,49 @@ onMounted(() => {
     flex-direction: column;
   }
 }
+
+.search-container {
+  margin-right: 20px;
+  width: 400px;
+}
+
+.search-card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.search-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.hot-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.hot-tag {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.hot-tag:hover {
+  background-color: #f5f7fa;
+  transform: translateY(-2px);
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+}
+
 </style>

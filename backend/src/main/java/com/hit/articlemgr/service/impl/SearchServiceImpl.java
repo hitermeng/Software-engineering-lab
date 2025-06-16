@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.List;
+
 /**
  * 搜索服务实现类
  *
@@ -29,11 +31,7 @@ public class SearchServiceImpl implements SearchService {
         IPage<ArticleVO> result = articleMapper.searchArticles(pageParam, keyword, userId);
 
         // 处理标签
-        result.getRecords().forEach(article -> {
-            if (StringUtils.hasText(article.getTags())) {
-                article.setTagArray(article.getTags().split(","));
-            }
-        });
+        processTags(result.getRecords());
 
         return result;
     }
@@ -50,7 +48,22 @@ public class SearchServiceImpl implements SearchService {
         filter.setSortOrder(sortOrder);
         filter.setPage(page);
         filter.setSize(size);
-
-        return articleService.getArticleList(filter, userId);
+        
+        IPage<ArticleVO> result = articleService.getArticleList(filter, userId);
+        
+        // 处理标签
+        processTags(result.getRecords());
+        
+        return result;
+    }
+    
+    private void processTags(List<ArticleVO> articles) {
+        articles.forEach(article -> {
+            if (StringUtils.hasText(article.getTags())) {
+                article.setTagArray(article.getTags().split(","));
+            } else {
+                article.setTagArray(new String[0]);
+            }
+        });
     }
 }
