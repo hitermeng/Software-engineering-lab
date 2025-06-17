@@ -67,6 +67,7 @@ export interface Category {
     sort?: number
     isActive?: boolean
     articleCount?: number
+    type?: string
 }
 
 export interface Article {
@@ -132,6 +133,7 @@ export interface FilterDTO {
     sort?: string
     sortField?: string
     sortOrder?: string
+    sortBy?: string
 }
 
 export interface IPage<T> {
@@ -149,16 +151,43 @@ export interface ArticleVO {
     summary?: string
     categoryId?: number
     categoryName?: string
-    tags: string  // 后端返回的是字符串
-    tagArray?: string[]  // 前端转换后的数组
+    categoryType?: string
+    tags: string
+    tagArray?: string[]
     status: number
     isShared: number
     viewCount: number
     likeCount: number
+    commentCount: number
     userId: number
     username: string
+    authorName: string
+    authorAvatar?: string
+    isLiked?: boolean
     createTime: string
     updateTime: string
+}
+
+// 评论相关接口
+export interface Comment {
+    id: number
+    articleId: number
+    content: string
+    userId: number
+    userName: string
+    userAvatar?: string
+    parentId?: number
+    replyToUserId?: number
+    replyToUserName?: string
+    createTime: string
+    replies?: Comment[]
+}
+
+export interface CommentDTO {
+    articleId: number
+    content: string
+    parentId?: number
+    replyToUserId?: number
 }
 
 // API接口
@@ -241,7 +270,37 @@ export const articleAPI = {
     generateSummary: (content: string) => api.post('/articles/generate-summary', { content }),
 
     // 获取最近文章列表
-    getRecentArticles: () => api.get('/articles/recent')
+    getRecentArticles: () => api.get('/articles/recent'),
+
+    // 获取公开文章列表（社区文章）
+    getPublicArticles: (params: FilterDTO) => api.get<IPage<ArticleVO>>('/articles/public', { params }),
+
+    // 获取热门文章
+    getHotArticles: () => api.get<ArticleVO[]>('/articles/hot'),
+
+    // 获取热门分类
+    getHotCategories: () => api.get<Category[]>('/articles/categories/hot'),
+
+    // 点赞文章
+    likeArticle: (id: number) => api.post(`/articles/${id}/like`),
+
+    // 取消点赞
+    unlikeArticle: (id: number) => api.delete(`/articles/${id}/like`),
+
+    // 获取文章评论列表
+    getComments: (params: { articleId: number | string; page: number; size: number }) =>
+        api.get<IPage<Comment>>(`/articles/${params.articleId}/comments`, {
+            params: { page: params.page, size: params.size }
+        }),
+
+    // 创建评论
+    createComment: (data: CommentDTO) => api.post('/comments', data),
+
+    // 删除评论
+    deleteComment: (id: number) => api.delete(`/comments/${id}`),
+
+    // 获取文章详情（包含点赞状态）
+    getArticleDetail: (id: number | string) => api.get<ArticleVO & { isLiked: boolean }>(`/articles/${id}/detail`)
 }
 
 export const searchAPI = {

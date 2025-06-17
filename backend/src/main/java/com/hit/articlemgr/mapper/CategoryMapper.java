@@ -44,4 +44,15 @@ public interface CategoryMapper extends BaseMapper<Category> {
      */
     @Select("SELECT COUNT(*) FROM category WHERE name = #{name} AND parent_id = #{parentId} AND user_id = #{userId} AND id != #{excludeId} AND deleted = 0")
     int existsByNameAndParentIdExcludeId(@Param("name") String name, @Param("parentId") Long parentId, @Param("userId") Long userId, @Param("excludeId") Long excludeId);
+
+    /**
+     * 获取热门分类（文章数最多的10个分类）
+     */
+    @Select("SELECT c.*, COUNT(a.id) as article_count " +
+            "FROM category c " +
+            "LEFT JOIN article a ON c.id = a.category_id " +
+            "GROUP BY c.id " +
+            "ORDER BY article_count DESC " +
+            "LIMIT 10")
+    List<Category> selectHotCategories();
 }

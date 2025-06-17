@@ -3,6 +3,7 @@ package com.hit.articlemgr.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.hit.articlemgr.dto.ArticleSaveDTO;
 import com.hit.articlemgr.dto.ArticleVO;
+import com.hit.articlemgr.dto.CategoryVO;
 import com.hit.articlemgr.dto.FilterDTO;
 import com.hit.articlemgr.entity.Article;
 import com.hit.articlemgr.mapper.ArticleMapper;
@@ -184,6 +185,81 @@ public class ArticleController {
             // 默认获取最近5篇已发布的文章
             List<ArticleVO> articles = articleService.getRecentArticles(userId);
             return R.success(articles);
+        } catch (Exception e) {
+            return R.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 获取公开文章列表（不需要登录）
+     */
+    @GetMapping("/public")
+    public R<IPage<ArticleVO>> getPublicArticles(FilterDTO filter) {
+        try {
+            filter.setIsShared(1);
+            filter.setStatus(1); // 只查询已发布的文章
+            IPage<ArticleVO> articlePage = articleService.getArticleList(filter, null);
+            return R.success(articlePage);
+        } catch (Exception e) {
+            return R.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 获取热门文章
+     */
+    @GetMapping("/hot")
+    public R<List<ArticleVO>> getHotArticles() {
+        try {
+            List<ArticleVO> articles = articleService.getHotArticles();
+            return R.success(articles);
+        } catch (Exception e) {
+            return R.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 获取热门分类
+     */
+    @GetMapping("/categories/hot")
+    public R<List<CategoryVO>> getHotCategories() {
+        try {
+            List<CategoryVO> categories = articleService.getHotCategories();
+            return R.success(categories);
+        } catch (Exception e) {
+            return R.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 取消点赞
+     */
+    @DeleteMapping("/{id}/like")
+    public R<Void> unlikeArticle(@PathVariable Long id) {
+        try {
+            articleService.decrementLikeCount(id);
+            return R.success("取消点赞成功", null);
+        } catch (Exception e) {
+            return R.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 获取文章详情（包含点赞状态）
+     */
+    @GetMapping("/{id}/detail")
+    public R<ArticleVO> getArticleDetail(@PathVariable Long id,
+                                        @AuthenticationPrincipal Long userId) {
+        try {
+            ArticleVO article = articleService.getArticleDetail(id, userId);
+            if (article == null) {
+                return R.notFound("文章不存在");
+            }
+
+            // 增加阅读次数
+            articleService.incrementViewCount(id);
+
+            return R.success(article);
         } catch (Exception e) {
             return R.error(e.getMessage());
         }

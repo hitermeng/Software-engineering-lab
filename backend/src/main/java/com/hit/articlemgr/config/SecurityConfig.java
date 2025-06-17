@@ -40,7 +40,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/register", "/auth/login", "/auth/validate").permitAll()
                         .requestMatchers("/articles/shared/**").permitAll()
-                        .requestMatchers("/api/uploads/**").permitAll()  // 允许访问上传的文件
+                        .requestMatchers("/api/uploads/**", "/uploads/**").permitAll()  // 允许访问上传的文件
+                        .requestMatchers("/articles/{id}/comments", "/articles/{id}/comment").permitAll()
                         .requestMatchers("/api/users/upload").authenticated()
                         .requestMatchers("/api/users/role").authenticated()  // 允许已登录用户访问角色管理接口
                         .anyRequest().authenticated())

@@ -5,11 +5,20 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hit.articlemgr.dto.ArticleSaveDTO;
 import com.hit.articlemgr.dto.ArticleVO;
+import com.hit.articlemgr.dto.CategoryVO;
 import com.hit.articlemgr.dto.FilterDTO;
 import com.hit.articlemgr.entity.Article;
+import com.hit.articlemgr.entity.ArticleLike;
+import com.hit.articlemgr.entity.Category;
+import com.hit.articlemgr.entity.User;
+import com.hit.articlemgr.exception.BusinessException;
+import com.hit.articlemgr.mapper.ArticleLikeMapper;
 import com.hit.articlemgr.mapper.ArticleMapper;
+import com.hit.articlemgr.mapper.CategoryMapper;
+import com.hit.articlemgr.mapper.UserMapper;
 import com.hit.articlemgr.service.ArticleService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -48,6 +57,9 @@ import java.util.stream.Collectors;
 public class ArticleServiceImpl implements ArticleService {
 
     private final ArticleMapper articleMapper;
+    private final CategoryMapper categoryMapper;
+    private final UserMapper userMapper;
+    private final ArticleLikeMapper articleLikeMapper;
 
     @Value("${llm.api.url:}")
     private String llmApiUrl;
@@ -312,5 +324,89 @@ public class ArticleServiceImpl implements ArticleService {
         wrapper.eq(Article::getId, id)
                 .eq(Article::getUserId, userId);
         return articleMapper.selectOne(wrapper);
+    }
+
+    @Override
+    public List<ArticleVO> getHotArticles() {
+        // 获取点赞数最多的10篇文章
+        LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
+        wrapper.orderByDesc(Article::getLikeCount)
+                .last("LIMIT 10");
+        
+        List<Article> articles = articleMapper.selectList(wrapper);
+        return articles.stream()
+                .map(this::convertToVO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CategoryVO> getHotCategories() {
+        // 获取文章数最多的10个分类
+        List<Category> categories = categoryMapper.selectHotCategories();
+        return categories.stream()
+                .map(category -> {
+                    CategoryVO vo = new CategoryVO();
+                    BeanUtils.copyProperties(category, vo);
+                    return vo;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void decrementLikeCount(Long id) {
+        Article article = articleMapper.selectById(id);
+        if (article == null) {
+            throw new BusinessException("文章不存在");
+        }
+        
+        if (article.getLikeCount() > 0) {
+            article.setLikeCount(article.getLikeCount() - 1);
+            articleMapper.updateById(article);
+        }
+    }
+
+    @Override
+    public ArticleVO getArticleDetail(Long id, Long userId) {
+        Article article = articleMapper.selectById(id);
+        if (article == null) {
+            throw new BusinessException("文章不存在");
+        }
+
+        ArticleVO vo = convertToVO(article);
+        
+        // 如果用户已登录，查询点赞状态
+        if (userId != null) {
+            LambdaQueryWrapper<ArticleLike> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(ArticleLike::getArticleId, id)
+                    .eq(ArticleLike::getUserId, userId);
+            ArticleLike like = articleLikeMapper.selectOne(wrapper);
+            vo.setLiked(like != null);
+        }
+
+        return vo;
+    }
+
+    /**
+     * 将文章实体转换为VO
+     */
+    private ArticleVO convertToVO(Article article) {
+        ArticleVO vo = new ArticleVO();
+        BeanUtils.copyProperties(article, vo);
+        
+        // 获取分类信息
+        Category category = categoryMapper.selectById(article.getCategoryId());
+        if (category != null) {
+            vo.setCategoryName(category.getName());
+        }
+        
+        // 获取作者信息
+        User author = userMapper.selectById(article.getUserId());
+        if (author != null) {
+            vo.setAuthorName(author.getUsername());
+            vo.setAuthorAvatar(author.getAvatar());
+        }
+        
+        return vo;
     }
 }

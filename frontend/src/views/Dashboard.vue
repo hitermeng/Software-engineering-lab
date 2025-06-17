@@ -65,6 +65,10 @@
             <el-icon><EditPen /></el-icon>
             <span>写文章</span>
           </el-menu-item>
+          <el-menu-item index="community">
+            <el-icon><Share /></el-icon>
+            <span>社区</span>
+          </el-menu-item>
           <el-menu-item index="permission">
             <el-icon><Setting /></el-icon>
             <span>权限管理</span>
@@ -390,6 +394,9 @@ const handleMenuSelect = (index: string) => {
       break
     case 'editor':
       router.push('/editor')
+      break
+    case 'community':
+      router.push('/community')
       break
     case 'permission':
       router.push('/permission')

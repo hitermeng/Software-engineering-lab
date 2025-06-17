@@ -3,6 +3,7 @@ package com.hit.articlemgr.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.hit.articlemgr.dto.ArticleSaveDTO;
 import com.hit.articlemgr.dto.ArticleVO;
+import com.hit.articlemgr.dto.CategoryVO;
 import com.hit.articlemgr.dto.FilterDTO;
 import com.hit.articlemgr.entity.Article;
 import com.hit.articlemgr.mapper.ArticleMapper;
@@ -70,4 +71,34 @@ public interface ArticleService {
      * 获取最近文章列表
      */
     List<ArticleVO> getRecentArticles(Long userId);
+
+    /**
+     * 获取热门文章
+     *
+     * @return 热门文章列表
+     */
+    List<ArticleVO> getHotArticles();
+
+    /**
+     * 获取热门分类
+     *
+     * @return 热门分类列表
+     */
+    List<CategoryVO> getHotCategories();
+
+    /**
+     * 减少点赞数
+     *
+     * @param id 文章ID
+     */
+    void decrementLikeCount(Long id);
+
+    /**
+     * 获取文章详情（包含点赞状态）
+     *
+     * @param id 文章ID
+     * @param userId 用户ID
+     * @return 文章详情
+     */
+    ArticleVO getArticleDetail(Long id, Long userId);
 }

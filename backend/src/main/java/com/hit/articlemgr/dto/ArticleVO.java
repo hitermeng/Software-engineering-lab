@@ -101,4 +101,19 @@ public class ArticleVO {
      * 更新时间
      */
     private LocalDateTime updateTime;
+
+    /**
+     * 作者名称
+     */
+    private String authorName;
+
+    /**
+     * 作者头像
+     */
+    private String authorAvatar;
+
+    /**
+     * 是否已点赞
+     */
+    private Boolean liked;
 }
