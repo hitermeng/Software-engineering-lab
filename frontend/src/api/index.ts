@@ -299,7 +299,10 @@ export const articleAPI = {
     deleteComment: (id: number) => api.delete(`/articles/comments/${id}`),
 
     // 获取文章详情（包含点赞状态）
-    getArticleDetail: (id: number | string) => api.get<ArticleVO & { isLiked: boolean }>(`/articles/${id}/detail`)
+    getArticleDetail: (id: number | string) => api.get<ArticleVO & { isLiked: boolean }>(`/articles/${id}/detail`),
+
+    // 获取仪表盘统计数据
+    getDashboardStatistics: () => api.get('/articles/dashboard/statistics')
 }
 
 export const searchAPI = {

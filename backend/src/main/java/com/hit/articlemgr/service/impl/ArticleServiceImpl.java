@@ -3,20 +3,23 @@ package com.hit.articlemgr.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hit.articlemgr.dto.ArticleSaveDTO;
 import com.hit.articlemgr.dto.ArticleVO;
+import com.hit.articlemgr.dto.CategoryDTO;
 import com.hit.articlemgr.dto.CategoryVO;
 import com.hit.articlemgr.dto.FilterDTO;
 import com.hit.articlemgr.entity.Article;
-import com.hit.articlemgr.entity.ArticleLike;
+//import com.hit.articlemgr.entity.ArticleLike;
 import com.hit.articlemgr.entity.Category;
 import com.hit.articlemgr.entity.User;
 import com.hit.articlemgr.exception.BusinessException;
-import com.hit.articlemgr.mapper.ArticleLikeMapper;
+//import com.hit.articlemgr.mapper.ArticleLikeMapper;
 import com.hit.articlemgr.mapper.ArticleMapper;
 import com.hit.articlemgr.mapper.CategoryMapper;
 import com.hit.articlemgr.mapper.UserMapper;
 import com.hit.articlemgr.service.ArticleService;
+import com.hit.articlemgr.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -24,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 //import org.springframework.web.multipart.MultipartFile;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.client.RestTemplate;
+//import org.springframework.web.client.RestTemplate;
 //import org.springframework.http.HttpEntity;
 //import org.springframework.http.HttpHeaders;
 //import org.springframework.http.MediaType;
@@ -42,9 +45,13 @@ import lombok.extern.slf4j.Slf4j;
 //import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
-import java.util.Set;
+//import java.util.Set;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 文章服务实现类
@@ -59,7 +66,7 @@ public class ArticleServiceImpl implements ArticleService {
     private final ArticleMapper articleMapper;
     private final CategoryMapper categoryMapper;
     private final UserMapper userMapper;
-    private final ArticleLikeMapper articleLikeMapper;
+    private final CategoryService categoryService;
 
     @Value("${llm.api.url:}")
     private String llmApiUrl;
@@ -75,8 +82,19 @@ public class ArticleServiceImpl implements ArticleService {
         // 验证分类是否存在
         if (articleSaveDTO.getCategoryId() != null) {
             Category category = categoryMapper.selectById(articleSaveDTO.getCategoryId());
-            if (category == null || !category.getUserId().equals(userId)) {
-                throw new BusinessException("分类不存在或无权限");
+            if (category == null) {
+                throw new BusinessException("分类不存在");
+            }
+            
+            // 验证用户权限
+            User currentUser = userMapper.selectById(userId);
+            if (currentUser == null) {
+                throw new BusinessException("用户不存在");
+            }
+            
+            // 只有非管理员用户需要验证分类权限
+            if (!"ADMIN".equals(currentUser.getRole()) && !category.getUserId().equals(userId)) {
+                throw new BusinessException("无权限使用此分类");
             }
         }
 
@@ -87,6 +105,8 @@ public class ArticleServiceImpl implements ArticleService {
         article.setViewCount(0);
         article.setLikeCount(0);
         article.setCommentCount(0);
+        article.setCreateTime(LocalDateTime.now());
+        article.setUpdateTime(LocalDateTime.now());
 
         articleMapper.insert(article);
         return article;
@@ -102,21 +122,31 @@ public class ArticleServiceImpl implements ArticleService {
         }
 
         // 验证权限
-        if (!existingArticle.getUserId().equals(userId)) {
+        User currentUser = userMapper.selectById(userId);
+        if (currentUser == null) {
+            throw new BusinessException("用户不存在");
+        }
+        
+        if (!existingArticle.getUserId().equals(userId) && !"ADMIN".equals(currentUser.getRole())) {
             throw new BusinessException("无权限修改此文章");
         }
 
         // 验证分类是否存在
         if (articleSaveDTO.getCategoryId() != null) {
             Category category = categoryMapper.selectById(articleSaveDTO.getCategoryId());
-            if (category == null || !category.getUserId().equals(userId)) {
-                throw new BusinessException("分类不存在或无权限");
+            if (category == null) {
+                throw new BusinessException("分类不存在");
+            }
+            // 只有非管理员用户需要验证分类权限
+            if (!"ADMIN".equals(currentUser.getRole()) && !category.getUserId().equals(userId)) {
+                throw new BusinessException("无权限使用此分类");
             }
         }
 
         // 更新文章
         Article article = new Article();
         BeanUtils.copyProperties(articleSaveDTO, article);
+        article.setUpdateTime(LocalDateTime.now());  // 设置更新时间
         articleMapper.updateById(article);
 
         return article;
@@ -241,6 +271,25 @@ public class ArticleServiceImpl implements ArticleService {
     @Override
     public ArticleMapper.ArticleStatistics getArticleStatistics(Long userId) {
         return articleMapper.getArticleStatistics(userId);
+    }
+
+    @Override
+    public Map<String, Object> getDashboardStatistics(Long userId) {
+        Map<String, Object> statistics = new HashMap<>();
+        
+        // 获取文章统计（所有用户）
+        ArticleMapper.ArticleStatistics articleStats = articleMapper.getGlobalArticleStatistics();
+        statistics.put("totalArticles", articleStats.getTotalArticles());
+        statistics.put("publishedArticles", articleStats.getPublishedArticles());
+        statistics.put("totalViews", articleStats.getTotalViews());
+        
+        // 获取分类数量（所有用户）
+        // 直接从 Mapper 获取所有未删除的分类总数
+        Long categoryCount = categoryMapper.selectCount(new QueryWrapper<Category>().eq("deleted", 0));
+        log.info("Dashboard category count: {}", categoryCount); // 再次添加日志以确认
+        statistics.put("totalCategories", categoryCount);
+        
+        return statistics;
     }
 
     @Override

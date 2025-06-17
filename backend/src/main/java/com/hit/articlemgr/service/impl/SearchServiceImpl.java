@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hit.articlemgr.dto.ArticleVO;
 import com.hit.articlemgr.dto.FilterDTO;
-import com.hit.articlemgr.entity.Article;
+//import com.hit.articlemgr.entity.Article;
 import com.hit.articlemgr.mapper.ArticleMapper;
 import com.hit.articlemgr.service.ArticleService;
 import com.hit.articlemgr.service.SearchService;

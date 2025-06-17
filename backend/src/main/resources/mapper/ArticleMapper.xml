@@ -94,13 +94,47 @@
         AND (a.is_shared = 1 OR a.user_id = #{userId})
     </select>
 
-    <!-- 全文搜索文章 -->
-    <select id="searchArticles" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/>
-        <include refid="Base_Where"/>
+    <!-- 搜索文章 -->
+    <select id="searchArticles" resultType="com.hit.articlemgr.dto.ArticleVO">
+        SELECT 
+            a.id, a.user_id, a.category_id, a.title, a.content, a.summary, a.tags,
+            a.is_shared, a.view_count, a.like_count, a.comment_count, a.status,
+            a.create_time, a.update_time,
+            u.username, u.nickname as user_nickname,
+            c.name as category_name
+        FROM article a
+        LEFT JOIN user u ON a.user_id = u.id
+        LEFT JOIN category c ON a.category_id = c.id
+        WHERE a.deleted = 0
         AND (a.is_shared = 1 OR a.user_id = #{userId})
-        AND MATCH(a.title, a.content, a.summary) AGAINST(#{keyword} IN NATURAL LANGUAGE MODE)
+        AND (
+            MATCH(a.title, a.content, a.summary) AGAINST(#{keyword} IN NATURAL LANGUAGE MODE)
+            OR a.title LIKE CONCAT('%', #{keyword}, '%')
+            OR a.content LIKE CONCAT('%', #{keyword}, '%')
+            OR a.summary LIKE CONCAT('%', #{keyword}, '%')
+        )
         ORDER BY a.create_time DESC
+    </select>
+
+    <!-- 获取文章统计信息 -->
+    <select id="getArticleStatistics" resultType="com.hit.articlemgr.mapper.ArticleMapper$ArticleStatistics">
+        SELECT 
+            COUNT(*) as totalArticles,
+            COUNT(CASE WHEN status = 1 THEN 1 END) as publishedArticles,
+            SUM(view_count) as totalViews
+        FROM article 
+        WHERE deleted = 0
+        AND user_id = #{userId}
+    </select>
+
+    <!-- 获取全局文章统计信息 -->
+    <select id="getGlobalArticleStatistics" resultType="com.hit.articlemgr.mapper.ArticleMapper$ArticleStatistics">
+        SELECT 
+            COUNT(*) as totalArticles,
+            COUNT(CASE WHEN status = 1 THEN 1 END) as publishedArticles,
+            SUM(view_count) as totalViews
+        FROM article 
+        WHERE deleted = 0
     </select>
 
 </mapper>

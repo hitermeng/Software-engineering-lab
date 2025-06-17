@@ -424,7 +424,8 @@ const editArticle = (id: number) => {
 // 获取文章统计数据
 const fetchArticleStatistics = async () => {
   try {
-    const response = await articleAPI.getStatistics() // 假设后端有根据用户ID获取统计数据，或不需要用户ID
+    const response = await articleAPI.getDashboardStatistics() // 确保调用正确的全局统计接口
+    console.log("Dashboard Statistics Response:", response.data); // 添加日志
     stats.totalArticles = response.data.totalArticles
     stats.totalCategories = response.data.totalCategories
     stats.totalViews = response.data.totalViews

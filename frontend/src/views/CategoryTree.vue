@@ -3,6 +3,7 @@
     <!-- 页面头部 -->
     <div class="category-header">
       <div class="header-left">
+        <el-button :icon="ArrowLeft" @click="goBackToDashboard">返回</el-button>
         <h2>分类管理</h2>
         <p>管理文章分类，支持多层级结构</p>
       </div>
@@ -267,6 +268,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useCategoryStore } from '@/store/category'
 import { 
   Plus, 
@@ -276,13 +278,15 @@ import {
   Expand, 
   Fold,
   Document,
-  Folder
+  Folder,
+  ArrowLeft
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import type { Category } from '@/api'
 
 const categoryStore = useCategoryStore()
+const router = useRouter()
 
 // 响应式状态
 const treeRef = ref()
@@ -557,6 +561,11 @@ const resetForm = () => {
 // 添加拖拽排序功能
 const handleDragEnd = async (evt: any) => {
   // 实现拖拽排序逻辑
+}
+
+// 返回仪表盘
+const goBackToDashboard = () => {
+  router.push('/dashboard')
 }
 
 // 组件挂载时获取分类数据

@@ -1,5 +1,13 @@
 <template>
   <div class="community-container">
+    <!-- 页面头部 -->
+    <div class="community-header">
+      <div class="header-left">
+        <el-button :icon="ArrowLeft" @click="goBackToDashboard">返回</el-button>
+        <h2>社区文章</h2>
+      </div>
+    </div>
+    
     <div class="community-content">
       <!-- 筛选区域 -->
       <div class="filter-section">
@@ -169,11 +177,16 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Search, View, ChatDotRound, Star } from '@element-plus/icons-vue'
+import { Search, View, ChatDotRound, Star, ArrowLeft } from '@element-plus/icons-vue'
 import { articleAPI } from '@/api'
 import type { ArticleVO, Category, FilterDTO, IPage } from '@/api'
 
 const router = useRouter()
+
+// 返回仪表盘
+const goBackToDashboard = () => {
+  router.push('/dashboard')
+}
 
 // 搜索和筛选相关
 const searchKeyword = ref('')
@@ -184,6 +197,9 @@ const categories = ref<Category[]>([])
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
+
+// 解决 filterForm 未定义错误
+const filterForm = reactive({})
 
 // 文章列表数据
 const articles = ref<ArticleVO[]>([])
@@ -307,6 +323,16 @@ const formatDate = (date: string) => {
     month: '2-digit',
     day: '2-digit',
   })
+}
+
+// 重置筛选条件
+const resetFilter = () => {
+  searchKeyword.value = ''
+  selectedCategory.value = null
+  sortBy.value = 'latest'
+  dateRange.value = null
+  currentPage.value = 1
+  fetchArticles()
 }
 
 onMounted(() => {

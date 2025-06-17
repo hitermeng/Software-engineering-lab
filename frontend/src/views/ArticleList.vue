@@ -3,6 +3,7 @@
     <!-- 头部操作栏 -->
     <div class="article-header">
       <div class="header-left">
+        <el-button :icon="ArrowLeft" @click="goBackToDashboard">返回</el-button>
         <h2>{{ isShared ? '共享文章' : '我的文章' }}</h2>
         <el-tag v-if="totalCount > 0" type="info">
           共 {{ totalCount }} 篇文章
@@ -196,7 +197,8 @@ import {
   Edit,
   Delete,
   View,
-  Star
+  Star,
+  ArrowLeft
 } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/store/auth'
 import { useCategoryStore } from '@/store/category'
@@ -366,6 +368,11 @@ const formatDate = (dateString: string) => {
   return dayjs(dateString).format('YYYY-MM-DD HH:mm')
 }
 
+// 返回仪表盘
+const goBackToDashboard = () => {
+  router.push('/dashboard')
+}
+
 // 组件挂载时获取数据
 onMounted(() => {
   fetchArticles()
@@ -380,6 +387,7 @@ onMounted(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
+  padding: 20px;
 }
 
 .article-header {

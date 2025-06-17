@@ -9,6 +9,7 @@ import com.hit.articlemgr.entity.Article;
 import com.hit.articlemgr.mapper.ArticleMapper;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 文章服务接口
@@ -101,4 +102,9 @@ public interface ArticleService {
      * @return 文章详情
      */
     ArticleVO getArticleDetail(Long id, Long userId);
+
+    /**
+     * 获取仪表盘统计数据
+     */
+    Map<String, Object> getDashboardStatistics(Long userId);
 }

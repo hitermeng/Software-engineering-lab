@@ -10,6 +10,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
+import lombok.Data;
 
 import java.util.List;
 
@@ -56,23 +57,22 @@ public interface ArticleMapper extends BaseMapper<Article> {
     List<String> getPopularTags(@Param("userId") Long userId);
 
     /**
-     * 获取统计数据
+     * 文章统计信息
      */
-    @Select("SELECT " +
-            "COUNT(*) as total_count, " +
-            "COUNT(CASE WHEN status = 1 THEN 1 END) as published_count, " +
-            "COUNT(CASE WHEN status = 0 THEN 1 END) as draft_count, " +
-            "COUNT(CASE WHEN is_shared = 1 THEN 1 END) as shared_count " +
-            "FROM article WHERE user_id = #{userId} AND deleted = 0")
+    @Data
+    public static class ArticleStatistics {
+        private Long totalArticles;
+        private Long publishedArticles;
+        private Long totalViews;
+    }
+
+    /**
+     * 获取文章统计信息 (用户特定)
+     */
     ArticleStatistics getArticleStatistics(@Param("userId") Long userId);
 
     /**
-     * 文章统计数据
+     * 获取全局文章统计信息
      */
-    class ArticleStatistics {
-        public Long totalCount;
-        public Long publishedCount;
-        public Long draftCount;
-        public Long sharedCount;
-    }
+    ArticleStatistics getGlobalArticleStatistics();
 }

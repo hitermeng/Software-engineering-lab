@@ -15,6 +15,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 文章控制器
@@ -260,6 +261,19 @@ public class ArticleController {
             articleService.incrementViewCount(id);
 
             return R.success(article);
+        } catch (Exception e) {
+            return R.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 获取仪表盘统计数据
+     */
+    @GetMapping("/dashboard/statistics")
+    public R<Map<String, Object>> getDashboardStatistics(@AuthenticationPrincipal Long userId) {
+        try {
+            Map<String, Object> statistics = articleService.getDashboardStatistics(userId);
+            return R.success(statistics);
         } catch (Exception e) {
             return R.error(e.getMessage());
         }
