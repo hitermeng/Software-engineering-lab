@@ -19,6 +19,5 @@ public interface SearchService {
      * 高级搜索
      */
     IPage<ArticleVO> advancedSearch(String keyword, Long categoryId, String tag,
-                                    String sortField, String sortOrder,
-                                    Integer page, Integer size, Long userId);
+                                    String sort, Integer page, Integer size, Long userId);
 }

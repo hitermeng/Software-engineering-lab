@@ -27,6 +27,7 @@
                 placeholder="选择分类"
                 clearable
                 @change="fetchArticles"
+                class="wide-select"
               >
                 <el-option
                   v-for="category in categories"
@@ -41,6 +42,7 @@
                 v-model="sortBy"
                 placeholder="排序方式"
                 @change="fetchArticles"
+                class="wide-select"
               >
                 <el-option label="最新发布" value="createTime,desc" />
                 <el-option label="最多浏览" value="viewCount,desc" />
@@ -250,7 +252,7 @@ const fetchArticles = async () => {
       size: pageSize.value,
       keyword: searchKeyword.value,
       categoryId: selectedCategory.value || undefined,
-      sortBy: sortBy.value,
+      sort: sortBy.value,
       startDate: dateRange.value?.[0]?.toISOString(),
       endDate: dateRange.value?.[1]?.toISOString(),
     }
@@ -507,5 +509,9 @@ onMounted(() => {
     align-items: flex-start;
     gap: 8px;
   }
+}
+
+.wide-select {
+  width: 220px;
 }
 </style> 

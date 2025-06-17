@@ -49,8 +49,10 @@ public class SearchController {
                                               @RequestParam(defaultValue = "1") Integer page,
                                               @RequestParam(defaultValue = "10") Integer size) {
         try {
+            String sort = sortField + "," + sortOrder;
+            
             IPage<ArticleVO> result = searchService.advancedSearch(
-                    keyword, categoryId, tag, sortField, sortOrder, page, size, userId);
+                    keyword, categoryId, tag, sort, page, size, userId);
             return R.success(result);
         } catch (Exception e) {
             return R.error(e.getMessage());

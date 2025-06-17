@@ -40,14 +40,12 @@ public class SearchServiceImpl implements SearchService {
 
     @Override
     public IPage<ArticleVO> advancedSearch(String keyword, Long categoryId, String tag,
-                                           String sortField, String sortOrder,
-                                           Integer page, Integer size, Long userId) {
+                                           String sort, Integer page, Integer size, Long userId) {
         FilterDTO filter = new FilterDTO();
         filter.setKeyword(keyword);
         filter.setCategoryId(categoryId);
         filter.setTag(tag);
-        filter.setSortField(sortField);
-        filter.setSortOrder(sortOrder);
+        filter.setSort(sort);
         filter.setPage(page);
         filter.setSize(size);
         

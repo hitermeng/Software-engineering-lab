@@ -53,7 +53,7 @@ public class FilterDTO {
     private String sort;
     
     private String sortField;
-    
+
     /**
      * 排序方向：asc-升序，desc-降序
      */

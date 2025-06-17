@@ -91,56 +91,45 @@
 
       <!-- 搜索结果区域 -->
       <div class="search-results">
-        <div v-for="article in results" :key="article.id" class="article-card">
-          <div v-if="loading" class="loading-indicator">
-            <el-icon class="is-loading"><Loading /></el-icon>
-            搜索中...
-          </div>
+        <div v-if="loading" class="loading-indicator">
+          <el-icon class="is-loading"><Loading /></el-icon>
+          搜索中...
+        </div>
 
-          <div v-if="!loading && results.length === 0" class="empty-results">
-            <el-empty description="未找到相关文章" />
-          </div>
+        <div v-if="!loading && results.length === 0" class="empty-results">
+          <el-empty description="未找到相关文章" />
+        </div>
 
-          <div v-else class="result-list">
-            <div v-for="article in results" :key="article.id" class="article-card">
-              <h3 class="title">{{ article.title }}</h3>
-              <div class="meta">
-                <span class="category">{{ article.categoryName }}</span>
-                <span class="time">{{ formatDate(article.createTime) }}</span>
-                <el-tag v-for="(tag, index) in article.tags" :key="index" size="small">
-                  {{ tag }}
-                </el-tag>
-              </div>
-              <div class="content-preview">
-                {{ truncateContent(article.content) }}
-              </div>
+        <div v-else class="result-list">
+          <div v-for="article in results" :key="article.id" class="article-card">
+            <h3 class="title">{{ article.title }}</h3>
+            <div class="meta">
+              <span class="category">{{ article.categoryName }}</span>
+              <span class="time">{{ formatDate(article.createTime) }}</span>
+              <el-tag
+                  v-for="(tag, index) in article.tagArray"
+                  :key="index"
+                  size="small"
+                  class="tag"
+              >
+                {{ tag }}
+              </el-tag>
+            </div>
+            <div class="content-preview">
+              {{ truncateContent(article.content) }}
             </div>
           </div>
+        </div>
 
-          <!-- 分页控件 -->
-          <div class="pagination">
-            <el-pagination
-                v-model:current-page="pagination.current"
-                v-model:page-size="pagination.size"
-                :total="pagination.total"
-                layout="prev, pager, next, jumper"
-                @current-change="handlePageChange"
-            />
-          </div>
-
-          <div class="meta">
-            <span class="category">{{ article.categoryName }}</span>
-            <span class="time">{{ formatDate(article.createTime) }}</span>
-            <!-- 使用 tagArray 显示标签 -->
-            <el-tag
-                v-for="(tag, index) in article.tagArray"
-                :key="index"
-                size="small"
-                class="tag"
-            >
-              {{ tag }}
-            </el-tag>
-          </div>
+        <!-- 分页控件 -->
+        <div class="pagination">
+          <el-pagination
+              v-model:current-page="pagination.current"
+              v-model:page-size="pagination.size"
+              :total="pagination.total"
+              layout="prev, pager, next, jumper"
+              @current-change="handlePageChange"
+          />
         </div>
       </div>
     </div>
@@ -217,6 +206,7 @@ const advancedSearch = async () => {
   try {
     const params = {
       ...advancedFilters,
+      sort: `${advancedFilters.sortField},${advancedFilters.sortOrder}`,
       categoryId: advancedFilters.categoryId ?? undefined,
       page: pagination.current,
       size: pagination.size
