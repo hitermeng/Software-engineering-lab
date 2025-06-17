@@ -22,13 +22,13 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
+//import org.springframework.web.multipart.MultipartFile;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+//import org.springframework.http.HttpEntity;
+//import org.springframework.http.HttpHeaders;
+//import org.springframework.http.MediaType;
+//import org.springframework.http.ResponseEntity;
 import com.alibaba.dashscope.aigc.generation.Generation;
 import com.alibaba.dashscope.aigc.generation.GenerationParam;
 import com.alibaba.dashscope.aigc.generation.GenerationResult;
@@ -39,7 +39,7 @@ import com.alibaba.dashscope.exception.InputRequiredException;
 import com.alibaba.dashscope.exception.NoApiKeyException;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
+//import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -67,27 +67,23 @@ public class ArticleServiceImpl implements ArticleService {
     @Value("${llm.api.key:}")
     private String llmApiKey;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    //private final RestTemplate restTemplate = new RestTemplate();
 
     @Override
     @Transactional
     public Article createArticle(ArticleSaveDTO articleSaveDTO, Long userId) {
-        Article article = new Article();
-        article.setUserId(userId);
-        article.setCategoryId(articleSaveDTO.getCategoryId());
-        article.setTitle(articleSaveDTO.getTitle());
-        article.setContent(articleSaveDTO.getContent());
-
-        // 如果没有提供摘要，自动生成
-        if (!StringUtils.hasText(articleSaveDTO.getSummary())) {
-            article.setSummary(generateSummary(articleSaveDTO.getContent()));
-        } else {
-            article.setSummary(articleSaveDTO.getSummary());
+        // 验证分类是否存在
+        if (articleSaveDTO.getCategoryId() != null) {
+            Category category = categoryMapper.selectById(articleSaveDTO.getCategoryId());
+            if (category == null || !category.getUserId().equals(userId)) {
+                throw new BusinessException("分类不存在或无权限");
+            }
         }
 
-        article.setTags(articleSaveDTO.getTags());
-        article.setIsShared(articleSaveDTO.getIsShared() != null ? articleSaveDTO.getIsShared() : 0);
-        article.setStatus(articleSaveDTO.getStatus() != null ? articleSaveDTO.getStatus() : 1);
+        // 创建文章
+        Article article = new Article();
+        BeanUtils.copyProperties(articleSaveDTO, article);
+        article.setUserId(userId);
         article.setViewCount(0);
         article.setLikeCount(0);
         article.setCommentCount(0);
@@ -99,65 +95,121 @@ public class ArticleServiceImpl implements ArticleService {
     @Override
     @Transactional
     public Article updateArticle(ArticleSaveDTO articleSaveDTO, Long userId) {
-        Article article = getArticleEntityById(articleSaveDTO.getId(), userId);
-        if (article == null) {
-            throw new RuntimeException("文章不存在");
+        // 验证文章是否存在
+        Article existingArticle = articleMapper.selectById(articleSaveDTO.getId());
+        if (existingArticle == null) {
+            throw new BusinessException("文章不存在");
         }
 
-        article.setCategoryId(articleSaveDTO.getCategoryId());
-        article.setTitle(articleSaveDTO.getTitle());
-        article.setContent(articleSaveDTO.getContent());
-
-        // 如果没有提供摘要，自动生成
-        if (!StringUtils.hasText(articleSaveDTO.getSummary())) {
-            article.setSummary(generateSummary(articleSaveDTO.getContent()));
-        } else {
-            article.setSummary(articleSaveDTO.getSummary());
+        // 验证权限
+        if (!existingArticle.getUserId().equals(userId)) {
+            throw new BusinessException("无权限修改此文章");
         }
 
-        article.setTags(articleSaveDTO.getTags());
-        article.setIsShared(articleSaveDTO.getIsShared() != null ? articleSaveDTO.getIsShared() : 0);
-        article.setStatus(articleSaveDTO.getStatus() != null ? articleSaveDTO.getStatus() : 1);
+        // 验证分类是否存在
+        if (articleSaveDTO.getCategoryId() != null) {
+            Category category = categoryMapper.selectById(articleSaveDTO.getCategoryId());
+            if (category == null || !category.getUserId().equals(userId)) {
+                throw new BusinessException("分类不存在或无权限");
+            }
+        }
 
+        // 更新文章
+        Article article = new Article();
+        BeanUtils.copyProperties(articleSaveDTO, article);
         articleMapper.updateById(article);
+
         return article;
     }
 
     @Override
     @Transactional
     public void deleteArticle(Long id, Long userId) {
-        Article article = getArticleEntityById(id, userId);
+        // 验证文章是否存在
+        Article article = articleMapper.selectById(id);
         if (article == null) {
-            throw new RuntimeException("文章不存在");
+            throw new BusinessException("文章不存在");
         }
 
-        // 软删除
+        // 验证权限
+        if (!article.getUserId().equals(userId)) {
+            throw new BusinessException("无权限删除此文章");
+        }
+
+        // 删除文章
         articleMapper.deleteById(id);
     }
 
     @Override
     public ArticleVO getArticleById(Long id, Long userId) {
-        ArticleVO articleVO = articleMapper.findArticleById(id, userId);
-        if (articleVO != null && StringUtils.hasText(articleVO.getTags())) {
-            // 解析标签
-            articleVO.setTagArray(articleVO.getTags().split(","));
+        Article article = articleMapper.selectById(id);
+        if (article == null) {
+            return null;
         }
+
+        ArticleVO articleVO = new ArticleVO();
+        BeanUtils.copyProperties(article, articleVO);
+        
+        // 设置分类信息
+        if (article.getCategoryId() != null) {
+            Category category = categoryMapper.selectById(article.getCategoryId());
+            if (category != null) {
+                articleVO.setCategoryName(category.getName());
+                articleVO.setCategoryType(category.getType());
+            }
+        }
+
+        // 设置作者信息
+        if (article.getUserId() != null) {
+            User user = userMapper.selectById(article.getUserId());
+            if (user != null) {
+                articleVO.setUsername(user.getUsername());
+                articleVO.setAuthorName(user.getNickname());
+                articleVO.setAuthorAvatar(user.getAvatar());
+            }
+        }
+
+        // 设置标签数组
+        if (StringUtils.hasText(article.getTags())) {
+            articleVO.setTagArray(Arrays.asList(article.getTags().split(",")));
+        }
+
         return articleVO;
     }
 
     @Override
     public IPage<ArticleVO> getArticleList(FilterDTO filter, Long userId) {
         Page<ArticleVO> page = new Page<>(filter.getPage(), filter.getSize());
-        IPage<ArticleVO> result = articleMapper.findArticleList(page, filter, userId);
+        IPage<ArticleVO> articlePage = articleMapper.findArticleList(page, filter, userId);
+        
+        // 处理文章列表
+        articlePage.getRecords().forEach(article -> {
+            // 设置分类信息
+            if (article.getCategoryId() != null) {
+                Category category = categoryMapper.selectById(article.getCategoryId());
+                if (category != null) {
+                    article.setCategoryName(category.getName());
+                    article.setCategoryType(category.getType());
+                }
+            }
 
-        // 处理标签
-        result.getRecords().forEach(article -> {
+            // 设置作者信息
+            if (article.getUserId() != null) {
+                User user = userMapper.selectById(article.getUserId());
+                if (user != null) {
+                    article.setUsername(user.getUsername());
+                    article.setAuthorName(user.getNickname());
+                    article.setAuthorAvatar(user.getAvatar());
+                }
+            }
+
+            // 设置标签数组
             if (StringUtils.hasText(article.getTags())) {
-                article.setTagArray(article.getTags().split(","));
+                article.setTagArray(Arrays.asList(article.getTags().split(",")));
             }
         });
-
-        return result;
+        
+        return articlePage;
     }
 
     @Override
@@ -169,20 +221,21 @@ public class ArticleServiceImpl implements ArticleService {
     @Override
     @Transactional
     public void incrementLikeCount(Long id) {
-        articleMapper.incrementLikeCount(id);
+        Article article = articleMapper.selectById(id);
+        if (article != null) {
+            article.setLikeCount(article.getLikeCount() + 1);
+            articleMapper.updateById(article);
+        }
     }
 
     @Override
     public List<String> getPopularTags(Long userId) {
-        List<String> tagStrings = articleMapper.getPopularTags(userId);
-        Set<String> allTags = tagStrings.stream()
+        List<String> tags = articleMapper.getPopularTags(userId);
+        return tags.stream()
                 .filter(StringUtils::hasText)
-                .flatMap(tags -> Arrays.stream(tags.split(",")))
-                .map(String::trim)
-                .filter(StringUtils::hasText)
-                .collect(Collectors.toSet());
-
-        return new ArrayList<>(allTags);
+                .flatMap(tag -> Arrays.stream(tag.split(",")))
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -291,59 +344,33 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     public List<ArticleVO> getRecentArticles(Long userId) {
-        LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Article::getDeleted, 0) // 未删除
-                .eq(Article::getStatus, 1) // 已发布
-                .and(w -> w.eq(Article::getUserId, userId).or().eq(Article::getIsShared, 1)) // 自己的或共享的
-                .orderByDesc(Article::getCreateTime)
-                .last("LIMIT 5"); // 获取最近5篇
-
-        List<Article> articles = articleMapper.selectList(wrapper);
-
-        // 转换为 ArticleVO
-        List<ArticleVO> articleVOs = articles.stream().map(article -> {
-            ArticleVO vo = new ArticleVO();
-            vo.setId(article.getId());
-            vo.setTitle(article.getTitle());
-            vo.setCategoryId(article.getCategoryId());
-            vo.setTags(article.getTags());
-            vo.setStatus(article.getStatus());
-            vo.setCreateTime(article.getCreateTime());
-            // 可以根据需要复制更多字段
-            return vo;
-        }).collect(Collectors.toList());
-
-        return articleVOs;
-    }
-
-    /**
-     * 根据ID获取文章实体
-     */
-    private Article getArticleEntityById(Long id, Long userId) {
-        LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Article::getId, id)
-                .eq(Article::getUserId, userId);
-        return articleMapper.selectOne(wrapper);
+        FilterDTO filter = new FilterDTO();
+        filter.setPage(1);
+        filter.setSize(10);
+        filter.setSortField("create_time");
+        filter.setSortOrder("desc");
+        
+        IPage<ArticleVO> page = getArticleList(filter, userId);
+        return page.getRecords();
     }
 
     @Override
     public List<ArticleVO> getHotArticles() {
-        // 获取点赞数最多的10篇文章
-        LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
-        wrapper.orderByDesc(Article::getLikeCount)
-                .last("LIMIT 10");
+        FilterDTO filter = new FilterDTO();
+        filter.setPage(1);
+        filter.setSize(10);
+        filter.setSortField("view_count");
+        filter.setSortOrder("desc");
+        filter.setIsShared(1);
+        filter.setStatus(1);
         
-        List<Article> articles = articleMapper.selectList(wrapper);
-        return articles.stream()
-                .map(this::convertToVO)
-                .collect(Collectors.toList());
+        IPage<ArticleVO> page = getArticleList(filter, null);
+        return page.getRecords();
     }
 
     @Override
     public List<CategoryVO> getHotCategories() {
-        // 获取文章数最多的10个分类
-        List<Category> categories = categoryMapper.selectHotCategories();
-        return categories.stream()
+        return categoryMapper.selectHotCategories().stream()
                 .map(category -> {
                     CategoryVO vo = new CategoryVO();
                     BeanUtils.copyProperties(category, vo);
@@ -356,11 +383,7 @@ public class ArticleServiceImpl implements ArticleService {
     @Transactional
     public void decrementLikeCount(Long id) {
         Article article = articleMapper.selectById(id);
-        if (article == null) {
-            throw new BusinessException("文章不存在");
-        }
-        
-        if (article.getLikeCount() > 0) {
+        if (article != null && article.getLikeCount() > 0) {
             article.setLikeCount(article.getLikeCount() - 1);
             articleMapper.updateById(article);
         }
@@ -368,45 +391,39 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     public ArticleVO getArticleDetail(Long id, Long userId) {
-        Article article = articleMapper.selectById(id);
-        if (article == null) {
-            throw new BusinessException("文章不存在");
+        ArticleVO article = articleMapper.findArticleById(id, userId);
+        if (article != null) {
+            processArticleVO(article, userId);
         }
-
-        ArticleVO vo = convertToVO(article);
-        
-        // 如果用户已登录，查询点赞状态
-        if (userId != null) {
-            LambdaQueryWrapper<ArticleLike> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(ArticleLike::getArticleId, id)
-                    .eq(ArticleLike::getUserId, userId);
-            ArticleLike like = articleLikeMapper.selectOne(wrapper);
-            vo.setLiked(like != null);
-        }
-
-        return vo;
+        return article;
     }
 
     /**
-     * 将文章实体转换为VO
+     * 处理文章VO对象
      */
-    private ArticleVO convertToVO(Article article) {
-        ArticleVO vo = new ArticleVO();
-        BeanUtils.copyProperties(article, vo);
-        
+    private void processArticleVO(ArticleVO article, Long userId) {
+        // 处理标签
+        if (StringUtils.hasText(article.getTags())) {
+            article.setTagArray(Arrays.asList(article.getTags().split(",")));
+        } else {
+            article.setTagArray(new ArrayList<>());
+        }
+
+        // 获取用户信息
+        User user = userMapper.selectById(article.getUserId());
+        if (user != null) {
+            article.setUsername(user.getUsername());
+            article.setUserNickname(user.getNickname());
+            article.setAuthorName(user.getNickname());
+            article.setAuthorAvatar(user.getAvatar());
+        }
+
         // 获取分类信息
-        Category category = categoryMapper.selectById(article.getCategoryId());
-        if (category != null) {
-            vo.setCategoryName(category.getName());
+        if (article.getCategoryId() != null) {
+            Category category = categoryMapper.selectById(article.getCategoryId());
+            if (category != null) {
+                article.setCategoryName(category.getName());
+            }
         }
-        
-        // 获取作者信息
-        User author = userMapper.selectById(article.getUserId());
-        if (author != null) {
-            vo.setAuthorName(author.getUsername());
-            vo.setAuthorAvatar(author.getAvatar());
-        }
-        
-        return vo;
     }
 }

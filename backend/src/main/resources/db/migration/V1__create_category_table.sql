@@ -14,5 +14,9 @@ CREATE TABLE IF NOT EXISTS category (
     deleted TINYINT DEFAULT 0 COMMENT '删除标记：0-未删除，1-已删除',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    type VARCHAR(20) NOT NULL COMMENT '分类类型',
     FOREIGN KEY (parent_id) REFERENCES category(id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='分类表'; 
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='分类表';
+
+CREATE INDEX idx_category_name ON category(name);
+CREATE INDEX idx_category_type ON category(type); 

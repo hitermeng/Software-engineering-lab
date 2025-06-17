@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hit.articlemgr.dto.ArticleVO;
 import com.hit.articlemgr.dto.FilterDTO;
+import com.hit.articlemgr.entity.Article;
 import com.hit.articlemgr.mapper.ArticleMapper;
 import com.hit.articlemgr.service.ArticleService;
 import com.hit.articlemgr.service.SearchService;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Arrays;
 
 /**
  * 搜索服务实现类
@@ -60,9 +62,9 @@ public class SearchServiceImpl implements SearchService {
     private void processTags(List<ArticleVO> articles) {
         articles.forEach(article -> {
             if (StringUtils.hasText(article.getTags())) {
-                article.setTagArray(article.getTags().split(","));
+                article.setTagArray(Arrays.asList(article.getTags().split(",")));
             } else {
-                article.setTagArray(new String[0]);
+                article.setTagArray(List.of());
             }
         });
     }

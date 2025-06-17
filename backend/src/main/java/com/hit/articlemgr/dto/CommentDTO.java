@@ -29,6 +29,11 @@ public class CommentDTO {
     private Long parentId;
 
     /**
+     * 回复的用户ID（回复评论时使用）
+     */
+    private Long replyToUserId;
+
+    /**
      * 回复的用户名（回复评论时使用）
      */
     private String replyTo;

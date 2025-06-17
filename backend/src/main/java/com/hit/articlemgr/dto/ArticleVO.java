@@ -3,6 +3,7 @@ package com.hit.articlemgr.dto;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 文章视图对象
@@ -43,6 +44,11 @@ public class ArticleVO {
     private String categoryName;
 
     /**
+     * 分类类型
+     */
+    private String categoryType;
+
+    /**
      * 文章标题
      */
     private String title;
@@ -65,7 +71,7 @@ public class ArticleVO {
     /**
      * 标签数组
      */
-    private String[] tagArray;
+    private List<String> tagArray;
 
     /**
      * 是否共享：0-私有，1-共享
@@ -111,9 +117,4 @@ public class ArticleVO {
      * 作者头像
      */
     private String authorAvatar;
-
-    /**
-     * 是否已点赞
-     */
-    private Boolean liked;
 }

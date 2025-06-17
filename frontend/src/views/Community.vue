@@ -1,97 +1,112 @@
 <template>
   <div class="community-container">
-    <!-- 顶部筛选区域 -->
-    <div class="filter-section">
-      <el-card class="filter-card">
-        <div class="search-box">
-          <el-input
-            v-model="searchKeyword"
-            placeholder="搜索文章..."
-            clearable
-            @keyup.enter="handleSearch"
-          >
-            <template #append>
-              <el-button :icon="Search" @click="handleSearch" />
-            </template>
-          </el-input>
-        </div>
+    <div class="community-content">
+      <!-- 筛选区域 -->
+      <div class="filter-section">
+        <el-card class="filter-card">
+          <el-form :inline="true" :model="filterForm" class="filter-form">
+            <el-form-item label="关键词">
+              <el-input
+                v-model="searchKeyword"
+                placeholder="搜索文章..."
+                clearable
+                @keyup.enter="fetchArticles"
+              />
+            </el-form-item>
+            <el-form-item label="分类">
+              <el-select
+                v-model="selectedCategory"
+                placeholder="选择分类"
+                clearable
+                @change="fetchArticles"
+              >
+                <el-option
+                  v-for="category in categories"
+                  :key="category.id"
+                  :label="category.name"
+                  :value="category.id"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="排序">
+              <el-select
+                v-model="sortBy"
+                placeholder="排序方式"
+                @change="fetchArticles"
+              >
+                <el-option label="最新发布" value="createTime,desc" />
+                <el-option label="最多浏览" value="viewCount,desc" />
+                <el-option label="最多评论" value="commentCount,desc" />
+                <el-option label="最多点赞" value="likeCount,desc" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="时间范围">
+              <el-date-picker
+                v-model="dateRange"
+                type="daterange"
+                range-separator="至"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+                @change="fetchArticles"
+              />
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="fetchArticles">搜索</el-button>
+              <el-button @click="resetFilter">重置</el-button>
+            </el-form-item>
+          </el-form>
+        </el-card>
+      </div>
 
-        <div class="filter-options">
-          <el-select v-model="selectedCategory" placeholder="选择分类" clearable>
-            <el-option
-              v-for="category in categories"
-              :key="category.id"
-              :label="category.name"
-              :value="category.id"
-            />
-          </el-select>
-
-          <el-select v-model="sortBy" placeholder="排序方式">
-            <el-option label="最新发布" value="latest" />
-            <el-option label="最多阅读" value="views" />
-            <el-option label="最多评论" value="comments" />
-          </el-select>
-
-          <el-date-picker
-            v-model="dateRange"
-            type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            :shortcuts="dateShortcuts"
-          />
-        </div>
-      </el-card>
-    </div>
-
-    <!-- 文章列表区域 -->
-    <div class="articles-section">
-      <el-row :gutter="20">
-        <el-col :span="16">
-          <!-- 文章列表 -->
-          <div class="article-list">
-            <el-card v-for="article in articles" :key="article.id" class="article-card">
-              <div class="article-header">
-                <h3 class="article-title" @click="viewArticle(article.id)">
-                  {{ article.title }}
-                </h3>
-                <el-tag
-                  v-if="article.categoryType"
-                  :type="article.categoryType === 'tech' ? 'success' : 'info'"
-                  size="small"
-                >
-                  {{ article.categoryName }}
-                </el-tag>
-              </div>
-              
-              <div class="article-content">
-                <p class="article-summary">{{ article.summary }}</p>
-              </div>
-
-              <div class="article-footer">
-                <div class="article-meta">
-                  <el-avatar :size="24" :src="article.authorAvatar">
-                    {{ article.authorName?.charAt(0) }}
-                  </el-avatar>
-                  <span class="author-name">{{ article.authorName }}</span>
-                  <span class="publish-time">{{ formatDate(article.createTime) }}</span>
+      <!-- 文章列表区域 -->
+      <div class="articles-section">
+        <el-row :gutter="20">
+          <el-col :span="16">
+            <!-- 文章列表 -->
+            <div class="article-list">
+              <el-card v-for="article in articles" :key="article.id" class="article-card">
+                <div class="article-header">
+                  <h3 class="article-title" @click="viewArticle(article.id)">
+                    {{ article.title }}
+                  </h3>
+                  <el-tag
+                    v-if="article.categoryType"
+                    :type="article.categoryType === 'tech' ? 'success' : 'info'"
+                    size="small"
+                  >
+                    {{ article.categoryName }}
+                  </el-tag>
                 </div>
-                <div class="article-stats">
-                  <span class="stat-item">
-                    <el-icon><View /></el-icon>
-                    {{ article.viewCount }}
-                  </span>
-                  <span class="stat-item">
-                    <el-icon><ChatDotRound /></el-icon>
-                    {{ article.commentCount }}
-                  </span>
-                  <span class="stat-item">
-                    <el-icon><Star /></el-icon>
-                    {{ article.likeCount }}
-                  </span>
+                
+                <div class="article-content">
+                  <p class="article-summary">{{ article.summary }}</p>
                 </div>
-              </div>
-            </el-card>
+
+                <div class="article-footer">
+                  <div class="article-meta">
+                    <el-avatar :size="24" :src="article.authorAvatar">
+                      {{ article.authorName?.charAt(0) }}
+                    </el-avatar>
+                    <span class="author-name">{{ article.authorName }}</span>
+                    <span class="publish-time">{{ formatDate(article.createTime) }}</span>
+                  </div>
+                  <div class="article-stats">
+                    <span class="stat-item">
+                      <el-icon><View /></el-icon>
+                      {{ article.viewCount }}
+                    </span>
+                    <span class="stat-item">
+                      <el-icon><ChatDotRound /></el-icon>
+                      {{ article.commentCount }}
+                    </span>
+                    <span class="stat-item">
+                      <el-icon><Star /></el-icon>
+                      {{ article.likeCount }}
+                    </span>
+                  </div>
+                </div>
+              </el-card>
+            </div>
 
             <!-- 分页 -->
             <div class="pagination-container">
@@ -105,47 +120,47 @@
                 @current-change="handleCurrentChange"
               />
             </div>
-          </div>
-        </el-col>
+          </el-col>
 
-        <!-- 侧边栏 -->
-        <el-col :span="8">
-          <el-card class="sidebar-card">
-            <template #header>
-              <div class="card-header">
-                <span>热门文章</span>
+          <!-- 侧边栏 -->
+          <el-col :span="8">
+            <el-card class="sidebar-card">
+              <template #header>
+                <div class="card-header">
+                  <span>热门文章</span>
+                </div>
+              </template>
+              <div class="hot-articles">
+                <div v-for="article in hotArticles" :key="article.id" class="hot-article-item">
+                  <span class="hot-article-title" @click="viewArticle(article.id)">
+                    {{ article.title }}
+                  </span>
+                  <span class="hot-article-views">{{ article.viewCount }} 阅读</span>
+                </div>
               </div>
-            </template>
-            <div class="hot-articles">
-              <div v-for="article in hotArticles" :key="article.id" class="hot-article-item">
-                <span class="hot-article-title" @click="viewArticle(article.id)">
-                  {{ article.title }}
-                </span>
-                <span class="hot-article-views">{{ article.viewCount }} 阅读</span>
-              </div>
-            </div>
-          </el-card>
+            </el-card>
 
-          <el-card class="sidebar-card">
-            <template #header>
-              <div class="card-header">
-                <span>热门分类</span>
+            <el-card class="sidebar-card">
+              <template #header>
+                <div class="card-header">
+                  <span>热门分类</span>
+                </div>
+              </template>
+              <div class="hot-categories">
+                <el-tag
+                  v-for="category in hotCategories"
+                  :key="category.id"
+                  :type="category.type"
+                  class="category-tag"
+                  @click="selectCategory(category.id)"
+                >
+                  {{ category.name }}
+                </el-tag>
               </div>
-            </template>
-            <div class="hot-categories">
-              <el-tag
-                v-for="category in hotCategories"
-                :key="category.id"
-                :type="category.type"
-                class="category-tag"
-                @click="selectCategory(category.id)"
-              >
-                {{ category.name }}
-              </el-tag>
-            </div>
-          </el-card>
-        </el-col>
-      </el-row>
+            </el-card>
+          </el-col>
+        </el-row>
+      </div>
     </div>
   </div>
 </template>
@@ -304,9 +319,16 @@ onMounted(() => {
 
 <style scoped>
 .community-container {
+  height: 100vh;
   padding: 20px;
   background-color: #f5f7fa;
-  min-height: 100vh;
+  overflow-y: auto;
+}
+
+.community-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-bottom: 40px;
 }
 
 .filter-section {

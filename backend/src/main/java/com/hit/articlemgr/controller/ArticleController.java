@@ -138,6 +138,19 @@ public class ArticleController {
     }
 
     /**
+     * 取消点赞
+     */
+    @DeleteMapping("/{id}/like")
+    public R<Void> unlikeArticle(@PathVariable Long id) {
+        try {
+            articleService.decrementLikeCount(id);
+            return R.success("取消点赞成功", null);
+        } catch (Exception e) {
+            return R.error(e.getMessage());
+        }
+    }
+
+    /**
      * 获取热门标签
      */
     @GetMapping("/tags/popular")
@@ -226,19 +239,6 @@ public class ArticleController {
         try {
             List<CategoryVO> categories = articleService.getHotCategories();
             return R.success(categories);
-        } catch (Exception e) {
-            return R.error(e.getMessage());
-        }
-    }
-
-    /**
-     * 取消点赞
-     */
-    @DeleteMapping("/{id}/like")
-    public R<Void> unlikeArticle(@PathVariable Long id) {
-        try {
-            articleService.decrementLikeCount(id);
-            return R.success("取消点赞成功", null);
         } catch (Exception e) {
             return R.error(e.getMessage());
         }

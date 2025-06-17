@@ -108,4 +108,10 @@ public class Category {
      */
     @TableField("sort")
     private Integer sort;
+
+    /**
+     * 分类类型
+     */
+    @TableField("type")
+    private String type;
 }

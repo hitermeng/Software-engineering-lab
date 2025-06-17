@@ -46,7 +46,7 @@
         </div>
       </el-card>
 
-      <!-- 评论区 -->
+      <!-- 评论列表 -->
       <el-card class="comments-card">
         <template #header>
           <div class="comments-header">
@@ -61,18 +61,14 @@
             type="textarea"
             :rows="3"
             placeholder="写下你的评论..."
-            :maxlength="500"
-            show-word-limit
           />
           <div class="comment-actions">
-            <el-button type="primary" @click="submitComment" :disabled="!commentContent.trim()">
-              发表评论
-            </el-button>
+            <el-button type="primary" @click="submitComment">发表评论</el-button>
           </div>
         </div>
 
         <!-- 评论列表 -->
-        <div class="comments-list">
+        <div v-if="comments.length > 0">
           <div v-for="comment in comments" :key="comment.id" class="comment-item">
             <div class="comment-user">
               <el-avatar :size="32" :src="comment.userAvatar">
@@ -85,12 +81,15 @@
             </div>
             <div class="comment-content">{{ comment.content }}</div>
             <div class="comment-actions">
-              <el-button type="text" @click="replyToComment(comment)">
+              <el-button
+                type="text"
+                @click="replyToComment(comment)"
+              >
                 回复
               </el-button>
-              <el-button 
-                v-if="comment.userId === currentUserId" 
-                type="text" 
+              <el-button
+                v-if="comment.userId === currentUserId"
+                type="text"
                 @click="deleteComment(comment.id)"
               >
                 删除
@@ -106,20 +105,23 @@
                   </el-avatar>
                   <div class="reply-user-info">
                     <span class="user-name">{{ reply.userName }}</span>
-                    <span class="reply-time">{{ formatDate(reply.createTime) }}</span>
+                    <span class="comment-time">{{ formatDate(reply.createTime) }}</span>
                   </div>
                 </div>
                 <div class="reply-content">
-                  <span class="reply-to" v-if="reply.replyToUserName">回复 @{{ reply.replyToUserName }}：</span>
+                  <span v-if="reply.replyTo" class="reply-to">@{{ reply.replyTo }}</span>
                   {{ reply.content }}
                 </div>
                 <div class="reply-actions">
-                  <el-button type="text" @click="replyToComment(comment, reply)">
+                  <el-button
+                    type="text"
+                    @click="replyToComment(comment, reply)"
+                  >
                     回复
                   </el-button>
-                  <el-button 
-                    v-if="reply.userId === currentUserId" 
-                    type="text" 
+                  <el-button
+                    v-if="reply.userId === currentUserId"
+                    type="text"
                     @click="deleteComment(reply.id)"
                   >
                     删除
@@ -128,20 +130,21 @@
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- 分页 -->
-        <div class="pagination-container">
-          <el-pagination
-            v-model:current-page="currentPage"
-            v-model:page-size="pageSize"
-            :total="total"
-            :page-sizes="[10, 20, 30, 50]"
-            layout="total, sizes, prev, pager, next"
-            @size-change="handleSizeChange"
-            @current-change="handleCurrentChange"
-          />
+          <!-- 分页 -->
+          <div class="pagination-container">
+            <el-pagination
+              v-model:current-page="currentPage"
+              v-model:page-size="pageSize"
+              :total="total"
+              :page-sizes="[10, 20, 50, 100]"
+              layout="total, sizes, prev, pager, next, jumper"
+              @size-change="handleSizeChange"
+              @current-change="handleCurrentChange"
+            />
+          </div>
         </div>
+        <el-empty v-else description="暂无评论" />
       </el-card>
     </div>
   </div>
@@ -207,6 +210,19 @@ const fetchArticleDetail = async () => {
   }
 }
 
+// 更新文章详情（不增加阅读量）
+const updateArticleDetail = async () => {
+  try {
+    const articleId = Number(route.params.id)
+    const response = await articleAPI.getArticleDetail(articleId)
+    article.value = response.data
+    isLiked.value = response.data.isLiked
+  } catch (error) {
+    console.error('更新文章详情失败:', error)
+    ElMessage.error('更新文章详情失败')
+  }
+}
+
 // 获取评论列表
 const fetchComments = async () => {
   try {
@@ -232,15 +248,23 @@ const submitComment = async () => {
     return
   }
 
+  if (!commentContent.value.trim()) {
+    ElMessage.warning('评论内容不能为空')
+    return
+  }
+
   try {
     const articleId = Number(route.params.id)
     await articleAPI.createComment({
       articleId: articleId,
       content: commentContent.value
-    } as CommentDTO) // Cast to CommentDTO to ensure correct type for API
+    } as CommentDTO)
     ElMessage.success('评论成功')
     commentContent.value = ''
-    fetchComments()
+    // 更新评论列表
+    await fetchComments()
+    // 更新文章详情（不增加阅读量）
+    await updateArticleDetail()
   } catch (error) {
     console.error('提交评论失败:', error)
     ElMessage.error('提交评论失败')
@@ -271,7 +295,10 @@ const deleteComment = async (commentId: number) => {
     
     await articleAPI.deleteComment(commentId)
     ElMessage.success('删除成功')
-    fetchComments()
+    // 更新评论列表
+    await fetchComments()
+    // 更新文章详情（不增加阅读量）
+    await updateArticleDetail()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除评论失败:', error)
@@ -298,9 +325,10 @@ const handleLike = async () => {
       article.value.likeCount++
     }
     isLiked.value = !isLiked.value
+    ElMessage.success(isLiked.value ? '点赞成功' : '取消点赞成功')
   } catch (error) {
-    console.error('操作失败:', error)
-    ElMessage.error('操作失败')
+    console.error('点赞操作失败:', error)
+    ElMessage.error('点赞操作失败')
   }
 }
 
@@ -344,14 +372,16 @@ onMounted(() => {
 
 <style scoped>
 .article-detail-container {
+  height: 100vh;
   padding: 20px;
   background-color: #f5f7fa;
-  min-height: 100vh;
+  overflow-y: auto;
 }
 
 .article-content {
   max-width: 800px;
   margin: 0 auto;
+  padding-bottom: 40px;
 }
 
 .article-card {

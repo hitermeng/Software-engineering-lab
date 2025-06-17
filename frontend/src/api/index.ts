@@ -163,7 +163,6 @@ export interface ArticleVO {
     username: string
     authorName: string
     authorAvatar?: string
-    isLiked?: boolean
     createTime: string
     updateTime: string
 }
@@ -294,10 +293,10 @@ export const articleAPI = {
         }),
 
     // 创建评论
-    createComment: (data: CommentDTO) => api.post('/comments', data),
+    createComment: (data: CommentDTO) => api.post(`/articles/${data.articleId}/comments`, data),
 
     // 删除评论
-    deleteComment: (id: number) => api.delete(`/comments/${id}`),
+    deleteComment: (id: number) => api.delete(`/articles/comments/${id}`),
 
     // 获取文章详情（包含点赞状态）
     getArticleDetail: (id: number | string) => api.get<ArticleVO & { isLiked: boolean }>(`/articles/${id}/detail`)

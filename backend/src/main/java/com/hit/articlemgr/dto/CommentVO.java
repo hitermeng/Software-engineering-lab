@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 评论VO
+ * 评论VO类
  */
 @Data
 public class CommentVO {
@@ -45,6 +45,11 @@ public class CommentVO {
      * 父评论ID
      */
     private Long parentId;
+
+    /**
+     * 回复的用户ID
+     */
+    private Long replyToUserId;
 
     /**
      * 回复的用户名

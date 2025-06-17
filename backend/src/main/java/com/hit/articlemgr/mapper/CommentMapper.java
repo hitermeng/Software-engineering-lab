@@ -3,6 +3,7 @@ package com.hit.articlemgr.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.hit.articlemgr.dto.CommentVO;
 import com.hit.articlemgr.entity.Comment;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -22,23 +23,28 @@ public interface CommentMapper extends BaseMapper<Comment> {
     @Select("SELECT c.*, u.username as user_name, u.avatar as user_avatar, " +
             "ru.username as reply_to_username " +
             "FROM comments c " +
-            "LEFT JOIN users u ON c.user_id = u.id " +
-            "LEFT JOIN users ru ON c.reply_to_user_id = ru.id " +
+            "LEFT JOIN user u ON c.user_id = u.id " +
+            "LEFT JOIN user ru ON c.reply_to_user_id = ru.id " +
             "WHERE c.article_id = #{articleId} AND c.parent_id IS NULL " +
             "ORDER BY c.create_time DESC")
-    IPage<Comment> selectArticleComments(Page<Comment> page, @Param("articleId") Long articleId);
+    IPage<CommentVO> selectArticleComments(Page<CommentVO> page, @Param("articleId") Long articleId);
 
     /**
      * 获取评论的回复列表
      */
-    @Select("SELECT c.*, u.username as user_name, u.avatar as user_avatar, " +
+    @Select("<script>" +
+            "SELECT c.*, u.username as user_name, u.avatar as user_avatar, " +
             "ru.username as reply_to_username " +
             "FROM comments c " +
-            "LEFT JOIN users u ON c.user_id = u.id " +
-            "LEFT JOIN users ru ON c.reply_to_user_id = ru.id " +
-            "WHERE c.parent_id = #{parentId} " +
-            "ORDER BY c.create_time ASC")
-    List<Comment> selectCommentReplies(@Param("parentId") Long parentId);
+            "LEFT JOIN user u ON c.user_id = u.id " +
+            "LEFT JOIN user ru ON c.reply_to_user_id = ru.id " +
+            "WHERE c.parent_id IN " +
+            "<foreach collection='parentIds' item='id' open='(' separator=',' close=')'>" +
+            "#{id}" +
+            "</foreach>" +
+            " ORDER BY c.create_time ASC" +
+            "</script>")
+    List<CommentVO> selectCommentReplies(@Param("parentIds") List<Long> parentIds);
 
     /**
      * 获取评论数量
