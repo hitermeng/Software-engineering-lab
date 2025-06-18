@@ -42,13 +42,13 @@
           <div class="stat-label">最大层级</div>
         </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon">📝</div>
-        <div class="stat-content">
-          <div class="stat-number">{{ totalArticles }}</div>
-          <div class="stat-label">关联文章</div>
-        </div>
-      </div>
+<!--      <div class="stat-card">-->
+<!--        <div class="stat-icon">📝</div>-->
+<!--        <div class="stat-content">-->
+<!--          <div class="stat-number">{{ totalArticles }}</div>-->
+<!--          <div class="stat-label">关联文章</div>-->
+<!--        </div>-->
+<!--      </div>-->
     </div>
 
     <!-- 分类树表格 -->
@@ -108,13 +108,13 @@
             </template>
           </el-table-column>
           
-          <el-table-column label="文章数量" width="100" align="center">
-            <template #default="{ row }">
-              <el-badge :value="row.articleCount" :max="99" class="article-count">
-                <el-icon><Document /></el-icon>
-              </el-badge>
-            </template>
-          </el-table-column>
+<!--          <el-table-column label="文章数量" width="100" align="center">-->
+<!--            <template #default="{ row }">-->
+<!--              <el-badge :value="row.articleCount" :max="99" class="article-count">-->
+<!--                <el-icon><Document /></el-icon>-->
+<!--              </el-badge>-->
+<!--            </template>-->
+<!--          </el-table-column>-->
           
           <el-table-column label="排序" width="80" align="center">
             <template #default="{ row }">
@@ -134,7 +134,7 @@
           
           <el-table-column label="创建时间" width="120">
             <template #default="{ row }">
-              <span class="create-time">{{ formatDate(row.createdAt) }}</span>
+              <span class="create-time">{{ formatDate(row.createTime) }}</span>
             </template>
           </el-table-column>
           
@@ -361,14 +361,14 @@ const maxLevel = computed(() => {
   return categoryStore.categories.length ? getMaxLevel(categoryStore.categories) : 0
 })
 
-const totalArticles = computed(() => {
-  const countArticles = (cats: Category[]): number => {
-    return cats.reduce((count, cat) => {
-      return count + (cat.articleCount || 0) + (cat.children ? countArticles(cat.children) : 0)
-    }, 0)
-  }
-  return countArticles(categoryStore.categories)
-})
+// const totalArticles = computed(() => {
+//   const countArticles = (cats: Category[]): number => {
+//     return cats.reduce((count, cat) => {
+//       return count + (cat.articleCount || 0) + (cat.children ? countArticles(cat.children) : 0)
+//     }, 0)
+//   }
+//   return countArticles(categoryStore.categories)
+// })
 
 // 获取父级分类选项（排除当前编辑的分类及其子类）
 const parentCategoryOptions = computed(() => {
@@ -578,11 +578,12 @@ onMounted(() => {
 
 <style scoped>
 .category-tree-container {
-  height: 100%;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   padding: 24px;
   background: #f5f7fa;
+  overflow: hidden;
 }
 
 .category-header {
@@ -666,7 +667,24 @@ onMounted(() => {
 
 .category-content {
   flex: 1;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* 添加最小高度保证 */
+}
+
+.category-content .el-card {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.category-content .el-card__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  padding: 0 !important;
 }
 
 .table-header {
@@ -675,6 +693,7 @@ onMounted(() => {
   align-items: center;
   padding: 20px 24px;
   border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
 }
 
 .table-title {
@@ -690,18 +709,46 @@ onMounted(() => {
 
 .category-tree {
   width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0; /* 添加最小高度 */
+}
+
+.category-tree :deep(.el-table) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100% !important; /* 关键：强制高度100% */
 }
 
 .category-tree :deep(.el-table__body-wrapper) {
-  padding: 0;
+  flex: 1;
+  overflow: auto !important; /* 强制启用滚动 */
+  -webkit-overflow-scrolling: touch; /* 启用平滑滚动 */
 }
 
-.category-tree :deep(.el-table__row) {
-  transition: background-color 0.2s;
+.category-tree :deep(.el-table__body) {
+  min-height: 100%; /* 确保内容足够滚动 */
 }
 
-.category-tree :deep(.el-table__row:hover) {
-  background-color: #f9fafb;
+.category-tree :deep(.el-table__header-wrapper) {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: white;
+}
+
+.category-tree :deep(.el-table__fixed-header-wrapper) {
+  top: 0;
+}
+
+.el-empty {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .node-content {
@@ -739,8 +786,6 @@ onMounted(() => {
 .node-actions {
   display: flex;
   gap: 4px;
-  opacity: 0;
-  transition: opacity 0.2s;
 }
 
 .node-actions .el-button {
@@ -767,7 +812,15 @@ onMounted(() => {
   .category-tree-container {
     padding: 16px;
   }
-  
+
+  .category-content {
+    min-height: 300px; /* 移动端最小高度 */
+  }
+
+  .category-tree :deep(.el-table__body-wrapper) {
+    max-height: calc(100vh - 400px); /* 移动端高度调整 */
+  }
+
   .category-header {
     flex-direction: column;
     gap: 16px;
